@@ -25,8 +25,10 @@ export default async function OrganizerLayout({
         .eq('id', user.id)
         .single()
 
-    if (userData?.role !== 'organizer') {
-        redirect(`/dashboard/${userData?.role || 'participant'}`)
+    const currentRole = userData?.role || user?.role || 'participant'
+
+    if (currentRole !== 'organizer') {
+        redirect(`/dashboard/${currentRole}`)
     }
 
     return (

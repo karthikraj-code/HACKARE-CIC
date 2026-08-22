@@ -25,8 +25,10 @@ export default async function JudgeLayout({
         .eq('id', user.id)
         .single()
 
-    if (userData?.role !== 'judge') {
-        redirect(`/dashboard/${userData?.role || 'participant'}`)
+    const currentRole = userData?.role || user?.role || 'participant'
+
+    if (currentRole !== 'judge') {
+        redirect(`/dashboard/${currentRole}`)
     }
 
     return (

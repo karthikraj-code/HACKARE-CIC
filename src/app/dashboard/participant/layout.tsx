@@ -26,8 +26,10 @@ export default async function ParticipantLayout({
         .eq('id', user.id)
         .single()
 
-    if (userData?.role !== 'participant') {
-        redirect(`/dashboard/${userData?.role || 'participant'}`)
+    const currentRole = userData?.role || user.role || 'participant'
+
+    if (currentRole !== 'participant') {
+        redirect(`/dashboard/${currentRole}`)
     }
 
     return (

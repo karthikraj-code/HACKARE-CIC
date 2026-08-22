@@ -8,6 +8,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PU
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 export const authOptions: NextAuthOptions = {
+    secret: process.env.NEXTAUTH_SECRET || 'ai-olympics',
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -23,55 +24,62 @@ export const authOptions: NextAuthOptions = {
             if (account?.provider === "google" && user.email) {
                 const emailLower = user.email.toLowerCase()
 
-                // Concurrently fetch existing user data and whitelist status to eliminate DB cascading delays
-                const [
-                    { data: userData },
-                    { data: orgData },
-                    { data: judgeData }
-                ] = await Promise.all([
-                    supabase.from('users').select('id, role').eq('email', emailLower).maybeSingle(),
-                    supabase.from('organizer_emails').select('email').eq('email', emailLower).maybeSingle(),
-                    supabase.from('judge_emails').select('email').eq('email', emailLower).maybeSingle()
-                ])
+                try {
+                    // Concurrently fetch existing user data and whitelist status
+                    const [
+                        { data: userData },
+                        { data: orgData },
+                        { data: judgeData }
+                    ] = await Promise.all([
+                        supabase.from('users').select('id, role').eq('email', emailLower).maybeSingle(),
+                        supabase.from('organizer_emails').select('email').eq('email', emailLower).maybeSingle(),
+                        supabase.from('judge_emails').select('email').eq('email', emailLower).maybeSingle()
+                    ])
 
-                let intendedRole = 'participant'
-                if (orgData) {
-                    intendedRole = 'organizer'
-                } else if (judgeData) {
-                    intendedRole = 'judge'
-                }
-
-                if (!userData) {
-                    // Create new user with explicit UUID
-                    const generatedId = crypto.randomUUID()
-                    const { data: newUserData, error } = await supabase
-                        .from('users')
-                        .insert([{
-                            id: generatedId,
-                            name: user.name || user.email.split('@')[0],
-                            email: emailLower,
-                            role: intendedRole
-                        }])
-                        .select()
-                        .single()
-                    
-                    if (error) {
-                        console.error('Error creating user:', error)
-                        return false // Deny login if we can't create the user
+                    let intendedRole = 'participant'
+                    if (orgData) {
+                        intendedRole = 'organizer'
+                    } else if (judgeData) {
+                        intendedRole = 'judge'
                     }
-                    // Attach the DB ID to the NextAuth user object for the JWT
-                    user.id = newUserData?.id || generatedId
-                    ;(user as any).role = intendedRole
-                } else {
 
-                    // If their intended role is different/higher now, update it
-                    if (intendedRole !== 'participant' && userData.role !== intendedRole) {
-                        await supabase.from('users').update({ role: intendedRole }).eq('id', userData.id)
+                    if (!userData) {
+                        const generatedId = crypto.randomUUID()
+                        const { data: newUserData, error } = await supabase
+                            .from('users')
+                            .insert([{
+                                id: generatedId,
+                                name: user.name || user.email.split('@')[0],
+                                email: emailLower,
+                                role: intendedRole
+                            }])
+                            .select()
+                            .single()
+                        
+                        if (error) {
+                            console.error('Error creating user in Supabase:', error)
+                            const { data: fallbackUser } = await supabase.from('users').select('id, role').eq('email', emailLower).maybeSingle()
+                            if (fallbackUser) {
+                                user.id = fallbackUser.id
+                                ;(user as any).role = fallbackUser.role || intendedRole
+                                return true
+                            }
+                        }
+
+                        user.id = newUserData?.id || generatedId
                         ;(user as any).role = intendedRole
                     } else {
-                        ;(user as any).role = userData.role || 'participant'
+                        if (intendedRole !== 'participant' && userData.role !== intendedRole) {
+                            await supabase.from('users').update({ role: intendedRole }).eq('id', userData.id)
+                            ;(user as any).role = intendedRole
+                        } else {
+                            ;(user as any).role = userData.role || 'participant'
+                        }
+                        user.id = userData.id
                     }
-                    user.id = userData.id
+                } catch (e) {
+                    console.error('Unexpected error in signIn callback:', e)
+                    ;(user as any).role = (user as any).role || 'participant'
                 }
             }
             return true
