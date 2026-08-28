@@ -6,8 +6,8 @@ import { NextResponse } from 'next/server'
 export async function POST(request: Request) {
     try {
         const supabase = await createClient()
-        const session = await getServerSession(authOptions);
-    const user = session?.user as any
+        const session = await getServerSession(authOptions)
+        const user = session?.user as any
 
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
         }
 
-        const { team_id, round_id, score, feedback } = await request.json()
+        const { team_id, round_id, score, feedback, criteria_scores } = await request.json()
 
         if (!team_id || !round_id || score === undefined) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -40,7 +40,6 @@ export async function POST(request: Request) {
         }
 
         // 2. Perform Upsert for Score
-        // Since unique constraint exists on (team_id, round_id, judge_id), we can check and update or insert
         const { data: existingScore } = await supabase
             .from('scores')
             .select('id')
@@ -52,14 +51,26 @@ export async function POST(request: Request) {
         if (existingScore) {
             const { error } = await supabase
                 .from('scores')
-                .update({ score, feedback, graded_at: new Date().toISOString() })
+                .update({
+                    score,
+                    feedback,
+                    criteria_scores: criteria_scores || {},
+                    graded_at: new Date().toISOString()
+                })
                 .eq('id', existingScore.id)
 
             if (error) throw error
         } else {
             const { error } = await supabase
                 .from('scores')
-                .insert([{ team_id, round_id, judge_id: user.id, score, feedback }])
+                .insert([{
+                    team_id,
+                    round_id,
+                    judge_id: user.id,
+                    score,
+                    feedback,
+                    criteria_scores: criteria_scores || {}
+                }])
 
             if (error) throw error
         }

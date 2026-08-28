@@ -1,17 +1,20 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
+import { ensureDbUser } from '@/lib/ensureUser'
 
 export async function POST(request: Request) {
     try {
-        const supabase = await createClient()
-        const session = await getServerSession(authOptions);
+        const session = await getServerSession(authOptions)
         const user = session?.user as any
 
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized. Please login.' }, { status: 401 })
         }
+
+        const supabase = await createAdminClient()
+        const dbUser = await ensureDbUser(user)
 
         const { problem_id, team_id } = await request.json()
 
@@ -30,7 +33,22 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Team not found' }, { status: 404 })
         }
 
-        if (teamData.leader_id !== user.id) {
+        let isLeader = teamData.leader_id === user.id || (dbUser && teamData.leader_id === dbUser.id)
+
+        if (!isLeader && (user.email || dbUser?.email)) {
+            const userEmail = (dbUser?.email || user.email)?.toLowerCase().trim()
+            const { data: leaderUser } = await supabase
+                .from('users')
+                .select('email')
+                .eq('id', teamData.leader_id)
+                .maybeSingle()
+
+            if (leaderUser?.email?.toLowerCase().trim() === userEmail) {
+                isLeader = true
+            }
+        }
+
+        if (!isLeader) {
             return NextResponse.json({ error: 'Only the Team Leader can select and lock a problem statement.' }, { status: 403 })
         }
 
@@ -39,7 +57,7 @@ export async function POST(request: Request) {
             .from('problem_selections')
             .select('id, problem_id')
             .eq('team_id', team_id)
-            .single()
+            .maybeSingle()
 
         if (existingSelection) {
             return NextResponse.json({ error: 'Your team has already locked a problem statement. Changes are not permitted.' }, { status: 400 })

@@ -1,17 +1,25 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { ensureDbUser } from '@/lib/ensureUser'
 
 export async function POST(request: Request) {
     try {
-        const supabase = await createClient()
         const session = await getServerSession(authOptions)
         const user = session?.user as any
 
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const supabase = await createAdminClient()
+
+        // Ensure user exists in public.users to satisfy foreign key constraint (teams_leader_id_fkey)
+        const dbUser = await ensureDbUser(user)
+        if (!dbUser) {
+            return NextResponse.json({ error: 'Failed to verify user record in database. Please re-login.' }, { status: 500 })
         }
 
         const { team_name, team_code } = await request.json()
@@ -27,12 +35,12 @@ export async function POST(request: Request) {
         const trimmedTeamName = team_name.trim()
         const trimmedTeamCode = team_code.trim().toUpperCase()
 
-        // Check if user is already in a team
+        // Check if user is already in a team (check with both dbUser.id and user.id)
         const { data: existingMember } = await supabase
             .from('team_members')
             .select('team_id')
-            .eq('user_id', user.id)
-            .single()
+            .in('user_id', [dbUser.id, user.id].filter(Boolean))
+            .maybeSingle()
 
         if (existingMember) {
             return NextResponse.json({ error: 'You are already in a team' }, { status: 400 })
@@ -41,14 +49,14 @@ export async function POST(request: Request) {
         // Generate unique 5 character invite code
         const invite_code = crypto.randomBytes(3).toString('hex').substring(0, 5).toUpperCase()
 
-        // Create the team
+        // Create the team with guaranteed valid dbUser.id as leader_id
         const { data: team, error: teamError } = await supabase
             .from('teams')
             .insert([
                 {
                     team_name: trimmedTeamName,
                     team_code: trimmedTeamCode,
-                    leader_id: user.id,
+                    leader_id: dbUser.id,
                     invite_code
                 }
             ])
@@ -66,11 +74,12 @@ export async function POST(request: Request) {
             .insert([
                 {
                     team_id: team.id,
-                    user_id: user.id
+                    user_id: dbUser.id
                 }
             ])
 
         if (memberError) {
+            console.error('Error adding team member:', memberError)
             // Cleanup team if member insertion fails
             await supabase.from('teams').delete().eq('id', team.id)
             return NextResponse.json({ error: 'Failed to add user to team' }, { status: 500 })

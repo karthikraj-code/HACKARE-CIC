@@ -1,21 +1,26 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import Link from 'next/link'
 import { Users, Plus, UserPlus, Lightbulb, ArrowRight, CheckCircle2 } from 'lucide-react'
 import CopyButton from '@/components/CopyButton'
+import { ensureDbUser } from '@/lib/ensureUser'
 
 export default async function ParticipantTeamPage() {
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
     const session = await getServerSession(authOptions);
     const user = session?.user as any
+
+    const dbUser = await ensureDbUser(user)
+    const activeUserId = dbUser?.id || user?.id
+    const userIds = [activeUserId, user?.id].filter(Boolean)
 
     // 1. Check if user is in a team
     const { data: membership } = await supabase
         .from('team_members')
         .select('team_id')
-        .eq('user_id', user?.id)
-        .single()
+        .in('user_id', userIds)
+        .maybeSingle()
 
     // If not in a team, show join/create options
     if (!membership) {
@@ -60,17 +65,17 @@ export default async function ParticipantTeamPage() {
           )
         `)
         .eq('id', membership.team_id)
-        .single()
+        .maybeSingle()
 
     // Get team's selected problem statement
     const { data: selection } = await supabase
         .from('problem_selections')
         .select('*, problem_statements(*)')
         .eq('team_id', membership.team_id)
-        .single()
+        .maybeSingle()
 
     const selectedProblem = selection?.problem_statements
-    const isLeader = team?.leader_id === user?.id
+    const isLeader = team?.leader_id === activeUserId || team?.leader_id === user?.id
     const memberCount = team?.team_members?.length || 0
 
     return (

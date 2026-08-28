@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { ShieldAlert, Trash2, Plus, UserPlus, GraduationCap } from 'lucide-react'
+import { formatDate } from '@/lib/dateUtils'
 
 export default function OrganizerSettingsPage() {
     const [organizers, setOrganizers] = useState<any[]>([])
@@ -141,7 +142,7 @@ export default function OrganizerSettingsPage() {
                                 <li key={e.email} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
                                     <div>
                                         <p className="font-medium text-gray-900">{e.email}</p>
-                                        <p className="text-xs text-gray-500">Added: {new Date(e.created_at).toLocaleDateString()}</p>
+                                        <p suppressHydrationWarning className="text-xs text-gray-500">Added: {formatDate(e.created_at)}</p>
                                     </div>
                                     <button
                                         onClick={() => handleRemove(e.email, 'judge')}
@@ -171,7 +172,7 @@ export default function OrganizerSettingsPage() {
                                 <li key={e.email} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
                                     <div>
                                         <p className="font-medium text-gray-900">{e.email}</p>
-                                        <p className="text-xs text-gray-500">Added: {new Date(e.created_at).toLocaleDateString()}</p>
+                                        <p suppressHydrationWarning className="text-xs text-gray-500">Added: {formatDate(e.created_at)}</p>
                                     </div>
                                     <button
                                         onClick={() => handleRemove(e.email, 'organizer')}

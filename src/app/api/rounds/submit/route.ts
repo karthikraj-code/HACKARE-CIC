@@ -1,15 +1,20 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
+import { normalizeSubmissionConfig } from '@/lib/submissionConfig'
+import { ensureDbUser } from '@/lib/ensureUser'
 
 export async function POST(request: Request) {
     try {
-        const supabase = await createClient()
-        const session = await getServerSession(authOptions);
+        const session = await getServerSession(authOptions)
         const user = session?.user as any
 
         if (!user) return NextResponse.json({ error: 'Unauthorized. Please login.' }, { status: 401 })
+
+        const supabase = await createAdminClient()
+        const dbUser = await ensureDbUser(user)
+        const activeUserId = dbUser?.id || user.id
 
         const {
             round_id,
@@ -28,8 +33,8 @@ export async function POST(request: Request) {
         const { data: membership } = await supabase
             .from('team_members')
             .select('team_id')
-            .eq('user_id', user.id)
-            .single()
+            .in('user_id', [activeUserId, user.id].filter(Boolean))
+            .maybeSingle()
 
         if (!membership) return NextResponse.json({ error: 'You must join or create a team before submitting.' }, { status: 400 })
 
@@ -39,14 +44,16 @@ export async function POST(request: Request) {
             .eq('id', membership.team_id)
             .single()
 
-        if (team?.leader_id !== user.id) {
+        const isLeader = team?.leader_id === activeUserId || team?.leader_id === user.id
+
+        if (!isLeader) {
             return NextResponse.json({ error: 'Only the Team Leader can submit work for the team.' }, { status: 403 })
         }
 
-        // 2. Validate round time
+        // 2. Validate round time and mandatory fields
         const { data: round } = await supabase
             .from('rounds')
-            .select('id, name, end_time, submission_type')
+            .select('id, name, round_number, end_time, submission_type')
             .eq('id', round_id)
             .single()
 
@@ -59,13 +66,27 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Submission deadline has passed for this round.' }, { status: 400 })
         }
 
+        const config = normalizeSubmissionConfig(round.submission_type, round.round_number, round.name)
+        if (config.fields.text.enabled && config.fields.text.required && !text_response?.trim()) {
+            return NextResponse.json({ error: `${config.fields.text.label || 'Written response'} is required.` }, { status: 400 })
+        }
+        if (config.fields.live_demo.enabled && config.fields.live_demo.required && !file_url?.trim()) {
+            return NextResponse.json({ error: `${config.fields.live_demo.label || 'Live link / Demo URL'} is required.` }, { status: 400 })
+        }
+        if (config.fields.github.enabled && config.fields.github.required && !github_url?.trim()) {
+            return NextResponse.json({ error: `${config.fields.github.label || 'GitHub repository URL'} is required.` }, { status: 400 })
+        }
+        if (config.fields.ppt.enabled && config.fields.ppt.required && !link?.trim()) {
+            return NextResponse.json({ error: `${config.fields.ppt.label || 'Presentation link'} is required.` }, { status: 400 })
+        }
+
         // 3. Upsert submission
         const { data: existingSub } = await supabase
             .from('submissions')
             .select('id')
             .eq('team_id', membership.team_id)
             .eq('round_id', round_id)
-            .single()
+            .maybeSingle()
 
         let submissionResult;
 
@@ -82,6 +103,7 @@ export async function POST(request: Request) {
                 })
                 .eq('id', existingSub.id)
                 .select()
+                .single()
 
             if (error) throw error
             submissionResult = data
@@ -99,6 +121,7 @@ export async function POST(request: Request) {
                     submitted_at: new Date().toISOString()
                 }])
                 .select()
+                .single()
 
             if (error) throw error
             submissionResult = data

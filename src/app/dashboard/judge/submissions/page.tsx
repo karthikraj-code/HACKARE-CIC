@@ -1,19 +1,25 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, Clock, Lightbulb } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Clock, Lightbulb, FileText } from 'lucide-react'
+import { normalizeRubric, calculateMaxScore } from '@/lib/rubricConfig'
+import { normalizeSubmissionConfig } from '@/lib/submissionConfig'
+import { ensureDbUser } from '@/lib/ensureUser'
 
 export default async function JudgeSubmissionsPage() {
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
     const session = await getServerSession(authOptions);
     const user = session?.user as any
+
+    const dbUser = await ensureDbUser(user)
+    const judgeIds = [dbUser?.id, user?.id].filter(Boolean)
 
     // 1. Get teams assigned to this judge
     const { data: assignments } = await supabase
         .from('judge_assignments')
         .select('team_id')
-        .eq('judge_id', user?.id)
+        .in('judge_id', judgeIds)
 
     const assignedTeamIds = assignments?.map(a => a.team_id) || []
 
@@ -23,6 +29,7 @@ export default async function JudgeSubmissionsPage() {
         .select(`
             id, 
             team_name,
+            team_code,
             problem_selections (
                 problem_statements (
                     statement_code,
@@ -34,10 +41,10 @@ export default async function JudgeSubmissionsPage() {
         .in('id', assignedTeamIds.length ? assignedTeamIds : ['00000000-0000-0000-0000-000000000000'])
         .order('team_name')
 
-    // 3. Get all rounds (Round 1 & Round 2)
+    // 3. Get all rounds
     const { data: rounds } = await supabase
         .from('rounds')
-        .select('id, name, round_number, end_time, submission_type, rubric')
+        .select('id, name, description, round_number, end_time, submission_type, rubric')
         .order('round_number', { ascending: true })
 
     // 4. Get submissions for these teams
@@ -50,11 +57,11 @@ export default async function JudgeSubmissionsPage() {
     const { data: scores } = await supabase
         .from('scores')
         .select('*')
-        .eq('judge_id', user?.id)
+        .in('judge_id', judgeIds)
 
     const now = new Date()
 
-    // Build a lookup: map[team_id][round_id] = { submission, score }
+    // Build a lookup: matrix[team_id][round_id] = { submission, score }
     const matrix: any = {}
     teams?.forEach((t: any) => {
         matrix[t.id] = {}
@@ -124,12 +131,19 @@ export default async function JudgeSubmissionsPage() {
                                     const isGraded = !!data.score
                                     const deadlinePassed = now > new Date(round.end_time)
 
-                                    const rubric = round.rubric || {}
-                                    const maxScore = Object.values(rubric).reduce((a: number, b: any) => a + (Number(b) || 0), 0)
+                                    const rubricObj = normalizeRubric(round.rubric, round.round_number, round.name)
+                                    const maxScore = calculateMaxScore(rubricObj)
+
+                                    const subCfg = normalizeSubmissionConfig(round.submission_type, round.round_number, round.name)
+                                    const subLabels = []
+                                    if (subCfg.fields.text.enabled) subLabels.push('📝 ' + (subCfg.fields.text.label || 'Text'))
+                                    if (subCfg.fields.live_demo.enabled) subLabels.push('🎥 ' + (subCfg.fields.live_demo.label || 'Live Demo'))
+                                    if (subCfg.fields.github.enabled) subLabels.push('💻 ' + (subCfg.fields.github.label || 'GitHub'))
+                                    if (subCfg.fields.ppt.enabled) subLabels.push('📊 ' + (subCfg.fields.ppt.label || 'PPT'))
 
                                     return (
                                         <div key={round.id} className="p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:bg-slate-50/50 transition-colors">
-                                            <div className="flex-1 space-y-1.5">
+                                            <div className="flex-1 space-y-2">
                                                 <div className="flex items-center gap-3">
                                                     <h4 className="font-bold text-gray-900 text-base">
                                                         {round.round_number ? `Round ${round.round_number}: ` : ''}{round.name}
@@ -141,7 +155,13 @@ export default async function JudgeSubmissionsPage() {
                                                     )}
                                                 </div>
 
-                                                <div className="text-xs text-gray-500 flex flex-wrap items-center gap-4">
+                                                {round.description && (
+                                                    <p className="text-xs text-gray-500 line-clamp-1 leading-relaxed">
+                                                        {round.description}
+                                                    </p>
+                                                )}
+
+                                                <div className="text-xs text-gray-500 flex flex-wrap items-center gap-4 pt-1">
                                                     {hasSubmission ? (
                                                         <span className="text-emerald-600 font-bold flex items-center gap-1.5">
                                                             <CheckCircle2 size={15} /> Submitted
@@ -156,6 +176,12 @@ export default async function JudgeSubmissionsPage() {
                                                         <span className="text-blue-700 font-black px-2.5 py-0.5 bg-blue-50 rounded-full border border-blue-200">
                                                             Score Given: {data.score.score} / {maxScore || 100}
                                                         </span>
+                                                    )}
+
+                                                    {subLabels.length > 0 && (
+                                                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md">
+                                                            <span>Formats: {subLabels.join(' • ')}</span>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>

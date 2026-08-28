@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import CopyButton from '@/components/CopyButton'
+import { formatDateTime } from '@/lib/dateUtils'
 
 export default function ProblemStatementSelectionPage() {
     const [loading, setLoading] = useState(true)
@@ -25,6 +26,7 @@ export default function ProblemStatementSelectionPage() {
     const [userTeam, setUserTeam] = useState<any>(null)
     const [userSelection, setUserSelection] = useState<any>(null)
     const [currentUser, setCurrentUser] = useState<any>(null)
+    const [isLeader, setIsLeader] = useState(false)
     
     // Filtering and Search
     const [searchQuery, setSearchQuery] = useState('')
@@ -37,11 +39,33 @@ export default function ProblemStatementSelectionPage() {
     const [success, setSuccess] = useState('')
 
     useEffect(() => {
-        fetchData()
-    }, [])
+        fetchData(true)
 
-    const fetchData = async () => {
+        const interval = setInterval(() => {
+            if (document.visibilityState === 'visible' && !submitting) {
+                fetchData(false)
+            }
+        }, 3500)
+
+        const handleFocus = () => {
+            if (document.visibilityState === 'visible' && !submitting) {
+                fetchData(false)
+            }
+        }
+
+        window.addEventListener('focus', handleFocus)
+        document.addEventListener('visibilitychange', handleFocus)
+
+        return () => {
+            clearInterval(interval)
+            window.removeEventListener('focus', handleFocus)
+            document.removeEventListener('visibilitychange', handleFocus)
+        }
+    }, [submitting])
+
+    const fetchData = async (showLoading = false) => {
         try {
+            if (showLoading) setLoading(true)
             const session = await getSession()
             setCurrentUser(session?.user)
 
@@ -52,12 +76,13 @@ export default function ProblemStatementSelectionPage() {
                 setProblems(data.problem_statements || [])
                 setUserTeam(data.user_team)
                 setUserSelection(data.user_team_selection)
+                setIsLeader(Boolean(data.is_leader || (data.user_team && session?.user && (data.user_team.leader_id === session.user.id))))
             }
         } catch (err: any) {
             console.error('Failed to load problem statements', err)
-            setError('Failed to load problem statements.')
+            if (showLoading) setError('Failed to load problem statements.')
         } finally {
-            setLoading(false)
+            if (showLoading) setLoading(false)
         }
     }
 
@@ -108,7 +133,6 @@ export default function ProblemStatementSelectionPage() {
         return matchesDomain && matchesSearch
     })
 
-    const isLeader = userTeam && currentUser && userTeam.leader_id === currentUser.id
     const hasLocked = !!userSelection
 
     if (loading) {
@@ -222,8 +246,8 @@ export default function ProblemStatementSelectionPage() {
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-4 items-center justify-between pt-4 border-t border-emerald-200">
-                        <p className="text-xs font-semibold text-emerald-800">
-                            Locked on {new Date(userSelection.selected_at).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}. Proceed to Round 1 to prepare your PPT!
+                        <p suppressHydrationWarning className="text-xs font-semibold text-emerald-800">
+                            Locked on {formatDateTime(userSelection.selected_at)}. Proceed to Round 1 to prepare your PPT!
                         </p>
                         <Link
                             href="/dashboard/participant/rounds"
@@ -391,7 +415,7 @@ export default function ProblemStatementSelectionPage() {
                                     />
                                 </div>
                                 <div className="bg-slate-50/90 p-4 rounded-xl border border-slate-100 mb-6">
-                                    <p className="text-gray-700 text-sm whitespace-pre-line leading-relaxed">
+                                    <p className="text-gray-700 text-xs sm:text-sm whitespace-pre-wrap break-words leading-relaxed font-medium">
                                         {problem.description}
                                     </p>
                                 </div>

@@ -1,10 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
-export default function DeleteRoundButton({ roundId, roundName }: { roundId: string, roundName: string }) {
+interface DeleteRoundButtonProps {
+    roundId: string
+    roundName: string
+    onDeleted?: (roundId: string) => void
+}
+
+export default function DeleteRoundButton({ roundId, roundName, onDeleted }: DeleteRoundButtonProps) {
     const [isDeleting, setIsDeleting] = useState(false)
     const router = useRouter()
 
@@ -29,6 +35,9 @@ export default function DeleteRoundButton({ roundId, roundName }: { roundId: str
                 throw new Error(error.error || 'Failed to delete round')
             }
 
+            if (onDeleted) {
+                onDeleted(roundId)
+            }
             router.refresh()
         } catch (error: any) {
             alert(error.message)
@@ -41,10 +50,10 @@ export default function DeleteRoundButton({ roundId, roundName }: { roundId: str
         <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="text-gray-400 hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 transition-colors disabled:opacity-50"
+            className="text-gray-400 hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 transition-colors disabled:opacity-50 cursor-pointer"
             title="Delete Round"
         >
-            <Trash2 size={18} />
+            {isDeleting ? <Loader2 size={18} className="animate-spin text-red-500" /> : <Trash2 size={18} />}
         </button>
     )
 }

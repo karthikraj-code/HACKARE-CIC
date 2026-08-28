@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { LayoutDashboard, Flag, UserCheck, Settings, Award, FileText, Lightbulb } from 'lucide-react'
 import SignOutButton from '@/components/SignOutButton'
+import DashboardRealtimeListener from '@/components/DashboardRealtimeListener'
 
 export default async function OrganizerLayout({
     children,
@@ -33,6 +34,7 @@ export default async function OrganizerLayout({
 
     return (
         <div className="min-h-screen bg-background flex flex-col md:flex-row">
+            <DashboardRealtimeListener />
             {/* Sidebar Navigation */}
             <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200 flex-shrink-0">
                 <div className="p-6">

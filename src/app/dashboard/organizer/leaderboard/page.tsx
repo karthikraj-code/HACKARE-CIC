@@ -16,11 +16,33 @@ export default function OrganizerLeaderboardPage() {
     const [expandedRound, setExpandedRound] = useState<string | null>(null)
 
     useEffect(() => {
-        fetchData()
-    }, [])
+        fetchData(true)
 
-    const fetchData = async () => {
+        const interval = setInterval(() => {
+            if (document.visibilityState === 'visible' && !toggling) {
+                fetchData(false)
+            }
+        }, 3500)
+
+        const handleFocus = () => {
+            if (document.visibilityState === 'visible' && !toggling) {
+                fetchData(false)
+            }
+        }
+
+        window.addEventListener('focus', handleFocus)
+        document.addEventListener('visibilitychange', handleFocus)
+
+        return () => {
+            clearInterval(interval)
+            window.removeEventListener('focus', handleFocus)
+            document.removeEventListener('visibilitychange', handleFocus)
+        }
+    }, [toggling])
+
+    const fetchData = async (showLoading = false) => {
         try {
+            if (showLoading) setLoading(true)
             const [
                 { data: config },
                 { data: teamsData },
@@ -40,7 +62,7 @@ export default function OrganizerLeaderboardPage() {
         } catch (err) {
             console.error(err)
         } finally {
-            setLoading(false)
+            if (showLoading) setLoading(false)
         }
     }
 

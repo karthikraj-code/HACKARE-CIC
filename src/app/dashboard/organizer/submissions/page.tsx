@@ -1,6 +1,8 @@
 import { createAdminClient } from '@/utils/supabase/server'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, Clock, Users, FileText, Lightbulb } from 'lucide-react'
+import { normalizeRubric, calculateMaxScore } from '@/lib/rubricConfig'
+import { formatDateTime } from '@/lib/dateUtils'
 
 export default async function OrganizerSubmissionsPage() {
     const supabase = await createAdminClient()
@@ -140,8 +142,8 @@ export default async function OrganizerSubmissionsPage() {
                                     const isGraded = !!data.score
                                     const deadlinePassed = now > new Date(round.end_time)
 
-                                    const rubric = round.rubric || {}
-                                    const maxScore = Object.values(rubric).reduce((a: number, b: any) => a + (Number(b) || 0), 0)
+                                    const rubricObj = normalizeRubric(round.rubric, round.round_number, round.name)
+                                    const maxScore = calculateMaxScore(rubricObj)
 
                                     return (
                                         <div key={round.id} className="p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:bg-slate-50/50 transition-colors">
@@ -162,8 +164,8 @@ export default async function OrganizerSubmissionsPage() {
                                                         <div className="flex items-center gap-2">
                                                             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                                             <span className="text-xs font-bold text-emerald-600">Submitted</span>
-                                                            <span className="text-xs text-gray-400 font-medium">
-                                                                {new Date(data.submission.submitted_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                            <span suppressHydrationWarning className="text-xs text-gray-400 font-medium">
+                                                                {formatDateTime(data.submission.submitted_at)}
                                                             </span>
                                                         </div>
                                                     ) : (

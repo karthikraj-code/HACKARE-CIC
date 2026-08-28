@@ -2,12 +2,13 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
+import { normalizeRubric } from '@/lib/rubricConfig'
 
 export async function POST(request: Request) {
     try {
         const supabase = await createClient()
         const session = await getServerSession(authOptions);
-    const user = session?.user as any
+        const user = session?.user as any
 
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
         }
 
         const {
+            round_number,
             name,
             description,
             start_time,
@@ -32,23 +34,23 @@ export async function POST(request: Request) {
             rubric
         } = await request.json()
 
-        // Default rubric if not provided
-        const finalRubric = rubric || {
-            Innovation: 10,
-            'Technical feasibility': 10,
-            Presentation: 10,
-            Impact: 10
+        if (!name || !start_time || !end_time) {
+            return NextResponse.json({ error: 'Missing required fields: name, start_time, or end_time' }, { status: 400 })
         }
+
+        // Default rubric if not provided
+        const finalRubric = rubric || normalizeRubric(null, round_number ? Number(round_number) : 1, name)
 
         const { data, error } = await supabase
             .from('rounds')
             .insert([
                 {
+                    round_number: round_number ? Number(round_number) : 1,
                     name,
                     description,
                     start_time,
                     end_time,
-                    submission_type,
+                    submission_type: submission_type || ['text'],
                     rubric: finalRubric
                 }
             ])
@@ -56,8 +58,8 @@ export async function POST(request: Request) {
             .single()
 
         if (error) {
-            console.error(error)
-            return NextResponse.json({ error: 'Failed to create round' }, { status: 500 })
+            console.error('Error creating round:', error)
+            return NextResponse.json({ error: error.message || 'Failed to create round' }, { status: 500 })
         }
 
         return NextResponse.json({ success: true, round: data })

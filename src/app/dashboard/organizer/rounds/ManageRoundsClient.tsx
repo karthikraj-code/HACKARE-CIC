@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { 
@@ -17,6 +17,9 @@ import {
     ArrowRight 
 } from 'lucide-react'
 import DeleteRoundButton from './DeleteRoundButton'
+import { normalizeSubmissionConfig } from '@/lib/submissionConfig'
+import { normalizeRubric, calculateMaxScore } from '@/lib/rubricConfig'
+import { formatDateTime } from '@/lib/dateUtils'
 
 interface Round {
     id: string
@@ -25,7 +28,7 @@ interface Round {
     start_time: string
     end_time: string
     round_number: number
-    submission_type?: string[]
+    submission_type?: any
     rubric?: Record<string, number>
 }
 
@@ -36,6 +39,18 @@ interface ManageRoundsClientProps {
 export default function ManageRoundsClient({ initialRounds }: ManageRoundsClientProps) {
     const router = useRouter()
     const [rounds, setRounds] = useState<Round[]>(initialRounds)
+    
+    // Synchronize state if server props change
+    useEffect(() => {
+        setRounds(initialRounds)
+    }, [initialRounds])
+
+    // Immediate local state update upon deletion
+    const handleRoundDeleted = (deletedRoundId: string) => {
+        setRounds(prev => prev.filter(r => r.id !== deletedRoundId))
+        setSuccessMessage('Round deleted successfully!')
+        setTimeout(() => setSuccessMessage(''), 4000)
+    }
     
     // Quick Timing Editor Modal state
     const [editingTimingRound, setEditingTimingRound] = useState<Round | null>(null)
@@ -164,8 +179,8 @@ export default function ManageRoundsClient({ initialRounds }: ManageRoundsClient
                         statusText = "ENDED"
                     }
 
-                    const rubric = round.rubric || {}
-                    const maxScore = Object.values(rubric).reduce((a: number, b: any) => a + (Number(b) || 0), 0)
+                    const rubricObj = normalizeRubric(round.rubric, round.round_number, round.name)
+                    const maxScore = calculateMaxScore(rubricObj)
 
                     return (
                         <div 
@@ -198,8 +213,8 @@ export default function ManageRoundsClient({ initialRounds }: ManageRoundsClient
                                             <Calendar size={14} className="text-blue-600" />
                                             <span className="font-semibold">Start:</span>
                                         </div>
-                                        <span className="font-mono text-slate-800 font-bold text-[11px]">
-                                            {startTime.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                        <span suppressHydrationWarning className="font-mono text-slate-800 font-bold text-[11px]">
+                                            {formatDateTime(startTime)}
                                         </span>
                                     </div>
 
@@ -208,8 +223,8 @@ export default function ManageRoundsClient({ initialRounds }: ManageRoundsClient
                                             <Clock size={14} className="text-purple-600" />
                                             <span className="font-semibold">Deadline:</span>
                                         </div>
-                                        <span className="font-mono text-slate-800 font-bold text-[11px]">
-                                            {endTime.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                        <span suppressHydrationWarning className="font-mono text-slate-800 font-bold text-[11px]">
+                                            {formatDateTime(endTime)}
                                         </span>
                                     </div>
 
@@ -218,9 +233,19 @@ export default function ManageRoundsClient({ initialRounds }: ManageRoundsClient
                                             <FileText size={14} className="text-gray-400" />
                                             <span className="font-semibold">Format:</span>
                                         </div>
-                                        <span className="capitalize font-bold text-slate-700 text-[11px] truncate max-w-[130px]">
-                                            {round.submission_type?.join(', ').replace(/_/g, ' ')}
-                                        </span>
+                                        {(() => {
+                                            const cfg = normalizeSubmissionConfig(round.submission_type, round.round_number, round.name)
+                                            const labels = []
+                                            if (cfg.fields.ppt.enabled) labels.push('PPT')
+                                            if (cfg.fields.github.enabled) labels.push('GitHub')
+                                            if (cfg.fields.live_demo.enabled) labels.push('Live Demo')
+                                            if (cfg.fields.text.enabled) labels.push('Text')
+                                            return (
+                                                <span className="capitalize font-bold text-slate-700 text-[11px] truncate max-w-[140px]" title={labels.join(', ')}>
+                                                    {labels.join(', ') || 'Text'}
+                                                </span>
+                                            )
+                                        })()}
                                     </div>
 
                                     {maxScore > 0 && (
@@ -258,7 +283,11 @@ export default function ManageRoundsClient({ initialRounds }: ManageRoundsClient
                                     >
                                         <Edit2 size={12} /> Edit Details
                                     </Link>
-                                    <DeleteRoundButton roundId={round.id} roundName={round.name} />
+                                    <DeleteRoundButton 
+                                        roundId={round.id} 
+                                        roundName={round.name} 
+                                        onDeleted={handleRoundDeleted}
+                                    />
                                 </div>
                             </div>
                         </div>

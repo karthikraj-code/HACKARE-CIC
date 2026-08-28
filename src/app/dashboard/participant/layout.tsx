@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { LayoutDashboard, Users, UserCircle, Target, Lightbulb } from 'lucide-react'
 import SignOutButton from '@/components/SignOutButton'
 import UserDropdown from '@/components/UserDropdown'
+import DashboardRealtimeListener from '@/components/DashboardRealtimeListener'
 
 export default async function ParticipantLayout({
     children,
@@ -34,6 +35,7 @@ export default async function ParticipantLayout({
 
     return (
         <div className="min-h-screen bg-background flex flex-col md:flex-row">
+            <DashboardRealtimeListener />
             {/* Sidebar Navigation */}
             <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200 flex-shrink-0">
                 <div className="p-6">

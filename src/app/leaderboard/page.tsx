@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
 import { Trophy, ArrowLeft, Lock } from 'lucide-react'
+import DashboardRealtimeListener from '@/components/DashboardRealtimeListener'
 
 export const revalidate = 0 // Opt out of static rendering
 
@@ -19,6 +20,7 @@ export default async function PublicLeaderboardPage() {
     if (!isReleased) {
         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8 text-center">
+                <DashboardRealtimeListener intervalMs={3000} />
                 <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
                     <Lock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <h1 className="text-2xl font-bold text-gray-900 mb-2">Results Hidden</h1>
@@ -48,6 +50,7 @@ export default async function PublicLeaderboardPage() {
 
     return (
         <div className="min-h-screen bg-background py-16 px-4">
+            <DashboardRealtimeListener intervalMs={3500} />
             <div className="max-w-4xl mx-auto space-y-8">
 
                 <div className="mb-4">

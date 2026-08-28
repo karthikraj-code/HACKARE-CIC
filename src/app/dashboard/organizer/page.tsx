@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/utils/supabase/server'
 import Link from 'next/link'
 import { Users, Calendar, ShieldCheck, Trophy, CheckCircle2, FileText } from 'lucide-react'
+import { formatTime } from '@/lib/dateUtils'
 
 export default async function OrganizerDashboard() {
     const supabase = await createAdminClient()
@@ -142,8 +143,8 @@ export default async function OrganizerDashboard() {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <span className="text-[10px] font-bold text-gray-400 block mb-1">
-                                        {new Date(sub.submitted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    <span suppressHydrationWarning className="text-[10px] font-bold text-gray-400 block mb-1">
+                                        {formatTime(sub.submitted_at)}
                                     </span>
                                     <Link 
                                         href={`/dashboard/organizer/submissions/${sub.team_id}/${sub.round_id}`}

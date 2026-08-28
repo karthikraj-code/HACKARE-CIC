@@ -3,8 +3,9 @@ import { authOptions } from "@/lib/auth"
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, CheckSquare } from 'lucide-react'
+import { LayoutDashboard, CheckSquare, Lightbulb, Trophy } from 'lucide-react'
 import SignOutButton from '@/components/SignOutButton'
+import DashboardRealtimeListener from '@/components/DashboardRealtimeListener'
 
 export default async function JudgeLayout({
     children,
@@ -33,21 +34,30 @@ export default async function JudgeLayout({
 
     return (
         <div className="min-h-screen bg-background flex flex-col md:flex-row">
+            <DashboardRealtimeListener />
             {/* Sidebar Navigation */}
             <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200 flex-shrink-0">
                 <div className="p-6">
                     <h2 className="text-xl font-bold text-blue-600">HACKARE</h2>
-                    <p className="text-xs text-gray-500 mt-1 uppercase font-semibold tracking-wider">Judge</p>
+                    <p className="text-xs text-gray-500 mt-1 uppercase font-semibold tracking-wider">Judge Panel</p>
                 </div>
 
                 <nav className="px-4 pb-6 space-y-1">
-                    <Link href="/dashboard/judge" className="flex items-center gap-3 px-3 py-2.5 rounded-md text-gray-700 hover:bg-gray-100 font-medium transition-colors">
-                        <LayoutDashboard size={20} />
+                    <Link href="/dashboard/judge" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-100 font-bold text-xs transition-colors">
+                        <LayoutDashboard size={18} className="text-blue-600" />
                         Dashboard
                     </Link>
-                    <Link href="/dashboard/judge/submissions" className="flex items-center gap-3 px-3 py-2.5 rounded-md text-gray-700 hover:bg-gray-100 font-medium transition-colors">
-                        <CheckSquare size={20} />
+                    <Link href="/dashboard/judge/submissions" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-100 font-bold text-xs transition-colors">
+                        <CheckSquare size={18} className="text-purple-600" />
                         Review Submissions
+                    </Link>
+                    <Link href="/dashboard/judge/rubrics" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-100 font-bold text-xs transition-colors">
+                        <Trophy size={18} className="text-amber-500" />
+                        Marks Criteria & Rubrics
+                    </Link>
+                    <Link href="/dashboard/judge/problem-statements" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-100 font-bold text-xs transition-colors">
+                        <Lightbulb size={18} className="text-emerald-600" />
+                        Problem Statements
                     </Link>
                 </nav>
 

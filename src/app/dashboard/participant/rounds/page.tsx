@@ -1,20 +1,27 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import Link from 'next/link'
 import { Calendar, Clock, FileText, CheckCircle2, AlertCircle, ArrowRight, Lightbulb } from 'lucide-react'
+import { normalizeSubmissionConfig } from '@/lib/submissionConfig'
+import { formatDateTime } from '@/lib/dateUtils'
+import { ensureDbUser } from '@/lib/ensureUser'
 
 export default async function ParticipantRoundsPage() {
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
     const session = await getServerSession(authOptions);
     const user = session?.user as any
+
+    const dbUser = await ensureDbUser(user)
+    const activeUserId = dbUser?.id || user?.id
+    const userIds = [activeUserId, user?.id].filter(Boolean)
 
     // 1. Get user's team
     const { data: membership } = await supabase
         .from('team_members')
         .select('team_id')
-        .eq('user_id', user?.id)
-        .single()
+        .in('user_id', userIds)
+        .maybeSingle()
 
     const teamId = membership?.team_id
 
@@ -25,7 +32,7 @@ export default async function ParticipantRoundsPage() {
             .from('problem_selections')
             .select('*, problem_statements(*)')
             .eq('team_id', teamId)
-            .single()
+            .maybeSingle()
         selectedProblem = selection?.problem_statements
     }
 
@@ -127,9 +134,6 @@ export default async function ParticipantRoundsPage() {
                         statusText = "SUBMITTED"
                     }
 
-                    const rubric = round.rubric || {}
-                    const totalMarks = Object.values(rubric).reduce((a: number, b: any) => a + (Number(b) || 0), 0)
-
                     return (
                         <div key={round.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col md:flex-row hover:border-blue-200 transition-all">
                             <div className="p-8 flex-1">
@@ -147,16 +151,25 @@ export default async function ParticipantRoundsPage() {
                                     {round.description || 'No description provided.'}
                                 </p>
 
-                                <div className="flex flex-wrap gap-4 text-xs">
+                                <div className="flex flex-wrap gap-3 text-xs">
                                     <div className="flex items-center text-gray-600 gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 font-medium">
                                         <Clock size={15} className="text-gray-400" />
-                                        <span>Deadline: {endTime.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                        <span suppressHydrationWarning>Deadline: {formatDateTime(endTime)}</span>
                                     </div>
-                                    {totalMarks > 0 && (
-                                        <div className="flex items-center text-blue-700 gap-1.5 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 font-bold">
-                                            <span>Max Score: {totalMarks} pts</span>
-                                        </div>
-                                    )}
+                                    {(() => {
+                                        const cfg = normalizeSubmissionConfig(round.submission_type, round.round_number, round.name)
+                                        const labels = []
+                                        if (cfg.fields.ppt.enabled) labels.push('PPT')
+                                        if (cfg.fields.github.enabled) labels.push('GitHub')
+                                        if (cfg.fields.live_demo.enabled) labels.push('Live Demo')
+                                        if (cfg.fields.text.enabled) labels.push('Text')
+                                        return (
+                                            <div className="flex items-center text-slate-700 gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 font-semibold">
+                                                <FileText size={14} className="text-gray-400" />
+                                                <span>Format: {labels.join(', ') || 'Text'}</span>
+                                            </div>
+                                        )
+                                    })()}
                                 </div>
                             </div>
 
@@ -182,7 +195,7 @@ export default async function ParticipantRoundsPage() {
                                 ) : now < startTime ? (
                                     <div className="text-center text-gray-500">
                                         <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                        <p className="font-bold text-xs">Opens {startTime.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                                        <p suppressHydrationWarning className="font-bold text-xs">Opens {formatDateTime(startTime)}</p>
                                     </div>
                                 ) : (
                                     <div className="text-center text-slate-500">

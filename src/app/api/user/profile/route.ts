@@ -2,35 +2,34 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { createAdminClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
+import { ensureDbUser } from '@/lib/ensureUser'
 
 export async function GET() {
     try {
         const session = await getServerSession(authOptions)
         const user = session?.user as any
 
-        if (!user?.id) {
+        if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
         const supabase = await createAdminClient()
 
-        // 1. Fetch user data
-        const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', user.id)
-            .single()
+        // 1. Fetch user data (or ensure they exist)
+        let userData = await ensureDbUser(user)
 
-        if (userError || !userData) {
+        if (!userData) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 })
         }
+
+        const activeUserId = userData.id
 
         // 2. Fetch team data if user is in a team
         const { data: membership } = await supabase
             .from('team_members')
             .select('team_id')
-            .eq('user_id', user.id)
-            .single()
+            .in('user_id', [activeUserId, user.id].filter(Boolean))
+            .maybeSingle()
 
         let team = null
         if (membership?.team_id) {
@@ -47,7 +46,6 @@ export async function GET() {
                         users (id, name, email, reg_no, dept, section, year)
                     )
                 `)
-
                 .eq('id', membership.team_id)
                 .single()
 
@@ -70,13 +68,15 @@ export async function POST(request: Request) {
         const session = await getServerSession(authOptions)
         const user = session?.user as any
 
-        if (!user?.id) {
+        if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
         const { reg_no, dept, section, year, name } = await request.json()
 
         const supabase = await createAdminClient()
+        const dbUser = await ensureDbUser(user)
+        const activeUserId = dbUser?.id || user.id
 
         const updates: any = {}
         if (reg_no !== undefined) updates.reg_no = reg_no ? String(reg_no).trim() : null
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
         const { data: updatedUser, error: updateError } = await supabase
             .from('users')
             .update(updates)
-            .eq('id', user.id)
+            .eq('id', activeUserId)
             .select()
             .single()
 

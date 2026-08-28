@@ -1,12 +1,13 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 import { PROBLEM_STATEMENTS_DATA } from '@/app/api/seed-problems/route'
+import { ensureDbUser } from '@/lib/ensureUser'
 
 export async function GET() {
     try {
-        const supabase = await createClient()
+        const supabase = await createAdminClient()
         const session = await getServerSession(authOptions);
         const user = session?.user as any
 
@@ -63,13 +64,20 @@ export async function GET() {
         // 3. Check current user's team selection
         let userTeamSelection: any = null
         let userTeam: any = null
+        let isLeader = false
+        let dbUser: any = null
+        let activeUserId: string | undefined = undefined
 
-        if (user?.id) {
+        if (user?.id || user?.email) {
+            dbUser = await ensureDbUser(user)
+            activeUserId = dbUser?.id || user?.id
+            const userIds = [activeUserId, user?.id].filter(Boolean)
+
             const { data: membership } = await supabase
                 .from('team_members')
                 .select('team_id, teams(*)')
-                .eq('user_id', user.id)
-                .single()
+                .in('user_id', userIds)
+                .maybeSingle()
 
             if (membership?.team_id) {
                 userTeam = membership.teams
@@ -78,9 +86,26 @@ export async function GET() {
                     .from('problem_selections')
                     .select('*, problem_statements(*)')
                     .eq('team_id', membership.team_id)
-                    .single()
+                    .maybeSingle()
 
                 userTeamSelection = teamSel
+            }
+        }
+
+        if (userTeam) {
+            if (userTeam.leader_id === activeUserId || userTeam.leader_id === user?.id) {
+                isLeader = true
+            } else if (user?.email || dbUser?.email) {
+                const userEmail = (dbUser?.email || user.email)?.toLowerCase().trim()
+                const { data: leaderUser } = await supabase
+                    .from('users')
+                    .select('email')
+                    .eq('id', userTeam.leader_id)
+                    .maybeSingle()
+
+                if (leaderUser?.email?.toLowerCase().trim() === userEmail) {
+                    isLeader = true
+                }
             }
         }
 
@@ -104,6 +129,7 @@ export async function GET() {
                 is_released: false,
                 problem_statements: [],
                 user_team: userTeam,
+                is_leader: isLeader,
                 user_team_selection: userTeamSelection
             })
         }
@@ -113,6 +139,7 @@ export async function GET() {
             is_released: isProblemsReleased,
             problem_statements: enrichedProblems,
             user_team: userTeam,
+            is_leader: isLeader,
             user_team_selection: userTeamSelection
         })
     } catch (error: any) {

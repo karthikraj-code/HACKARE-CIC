@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { 
     ArrowLeft, 
     Clock, 
+    Calendar,
     AlertCircle, 
     FileText, 
     Link as LinkIcon, 
@@ -20,6 +21,8 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import CopyButton from '@/components/CopyButton'
+import { normalizeSubmissionConfig } from '@/lib/submissionConfig'
+import { formatDateTime } from '@/lib/dateUtils'
 
 export default function RoundSubmissionPage() {
     const params = useParams()
@@ -55,50 +58,35 @@ export default function RoundSubmissionPage() {
             const user = session?.user as any
             if (!user) return
 
-            // 1. Get Round Details
-            const { data: roundData } = await supabase
-                .from('rounds')
-                .select('*')
-                .eq('id', roundId)
-                .single()
+            // 1. Get Round Details & User Profile concurrently
+            const [
+                { data: roundData },
+                profileRes
+            ] = await Promise.all([
+                supabase.from('rounds').select('*').eq('id', roundId).maybeSingle(),
+                fetch('/api/user/profile').then(r => r.json()).catch(() => null)
+            ])
 
             setRound(roundData)
 
-            // 2. Get Team Details
-            const { data: membership } = await supabase
-                .from('team_members')
-                .select('team_id')
-                .eq('user_id', user.id)
-                .single()
-
-            if (membership) {
-                const { data: teamData } = await supabase
-                    .from('teams')
-                    .select('*')
-                    .eq('id', membership.team_id)
-                    .single()
-
+            if (profileRes?.team) {
+                const teamData = profileRes.team
                 setTeam(teamData)
-                setIsLeader(teamData?.leader_id === user.id)
+                const dbUserId = profileRes.user?.id
+                setIsLeader(teamData?.leader_id === user.id || (dbUserId && teamData?.leader_id === dbUserId))
 
-                // 3. Get Team's Selected Problem Statement
-                const { data: selData } = await supabase
-                    .from('problem_selections')
-                    .select('*, problem_statements(*)')
-                    .eq('team_id', teamData.id)
-                    .single()
+                // 2. Get Team's Selected Problem Statement & Submission concurrently
+                const [
+                    { data: selData },
+                    { data: submission }
+                ] = await Promise.all([
+                    supabase.from('problem_selections').select('*, problem_statements(*)').eq('team_id', teamData.id).maybeSingle(),
+                    supabase.from('submissions').select('*').eq('team_id', teamData.id).eq('round_id', roundId).maybeSingle()
+                ])
 
                 if (selData?.problem_statements) {
                     setSelectedProblem(selData.problem_statements)
                 }
-
-                // 4. Get Existing Submission
-                const { data: submission } = await supabase
-                    .from('submissions')
-                    .select('*')
-                    .eq('team_id', teamData.id)
-                    .eq('round_id', roundId)
-                    .single()
 
                 if (submission) {
                     setExistingSubmission(submission)
@@ -163,12 +151,12 @@ export default function RoundSubmissionPage() {
     if (!round) return <div className="p-8 text-center text-slate-500 font-bold">Round not found.</div>
 
     const now = new Date()
-    const endTime = new Date(round.end_time)
-    const isClosed = now > endTime
-    const isRound1 = round.round_number === 1 || round.submission_type?.includes('problem_architecture_ppt') || round.name?.toLowerCase().includes('round 1')
-    const isRound2 = round.round_number === 2 || round.submission_type?.includes('product_code_demo') || round.name?.toLowerCase().includes('round 2')
+    const startTime = round.start_time ? new Date(round.start_time) : null
+    const endTime = round.end_time ? new Date(round.end_time) : null
 
-    const rubric = round.rubric || {}
+    const isUpcoming = startTime ? now < startTime : false
+    const isClosed = endTime ? now > endTime : false
+    const isActive = !isUpcoming && !isClosed
 
     return (
         <div className="max-w-4xl space-y-6 mx-auto pb-16">
@@ -223,7 +211,7 @@ export default function RoundSubmissionPage() {
 
             {/* Main Round Card */}
             <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden space-y-6">
-                <div className={`absolute top-0 left-0 w-full h-1.5 ${isClosed ? 'bg-slate-600' : existingSubmission ? 'bg-emerald-600' : 'bg-blue-600'}`} />
+                <div className={`absolute top-0 left-0 w-full h-1.5 ${isClosed ? 'bg-slate-600' : isUpcoming ? 'bg-amber-500' : existingSubmission ? 'bg-emerald-600' : 'bg-blue-600'}`} />
 
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
@@ -231,38 +219,55 @@ export default function RoundSubmissionPage() {
                             {round.round_number && <span className="text-blue-600 mr-2">Round {round.round_number}:</span>}
                             {round.name}
                         </h1>
-                        <div className="flex items-center text-gray-600 gap-2 bg-slate-50 max-w-fit px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold">
-                            <Clock size={14} className={isClosed ? 'text-slate-600' : 'text-blue-600'} />
-                            {isClosed ? 'Deadline Passed' : `Ends: ${endTime.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`}
+                        <div suppressHydrationWarning className="flex items-center text-gray-600 gap-2 bg-slate-50 max-w-fit px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold">
+                            {isUpcoming ? (
+                                <>
+                                    <Calendar size={14} className="text-amber-600" />
+                                    <span className="text-amber-900 font-bold">Opens: {formatDateTime(startTime)}</span>
+                                </>
+                            ) : isClosed ? (
+                                <>
+                                    <Clock size={14} className="text-slate-600" />
+                                    <span>Deadline Passed: {formatDateTime(endTime)}</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Clock size={14} className="text-blue-600" />
+                                    <span>Ends: {formatDateTime(endTime)}</span>
+                                </>
+                            )}
                         </div>
                     </div>
-                    {existingSubmission && (
+                    {existingSubmission ? (
                         <div className="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 border border-emerald-200 shadow-xs">
                             <CheckCircle2 size={18} />
                             Submission Recorded
                         </div>
-                    )}
+                    ) : isUpcoming ? (
+                        <div className="bg-amber-50 text-amber-800 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 border border-amber-200 shadow-xs">
+                            <Calendar size={16} />
+                            Upcoming Round
+                        </div>
+                    ) : null}
                 </div>
 
                 {/* Instructions */}
                 <div className="prose max-w-none text-gray-700 border-t border-gray-100 pt-6">
                     <h3 className="text-base font-bold text-gray-900 mb-2">Instructions & Guidelines</h3>
                     <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
-                        {round.description || 'Follow the rubric criteria below and provide your complete submission before the deadline.'}
+                        {round.description || 'Follow the guidelines and provide your complete submission before the deadline.'}
                     </p>
                 </div>
 
-                {/* Scoring Rubric Preview */}
-                {Object.keys(rubric).length > 0 && (
-                    <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
-                        <h4 className="text-xs font-black uppercase tracking-wider text-gray-500 mb-3">Evaluation Rubric & Weightage</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {Object.entries(rubric).map(([crit, pts]) => (
-                                <div key={crit} className="flex justify-between items-center bg-white px-3.5 py-2 rounded-lg border border-slate-200 text-xs font-semibold">
-                                    <span className="text-gray-800">{crit}</span>
-                                    <span className="text-blue-600 font-mono font-black">{pts as any} pts</span>
-                                </div>
-                            ))}
+                {/* Upcoming Notice */}
+                {isUpcoming && (
+                    <div className="bg-amber-50 text-amber-900 p-5 rounded-2xl flex items-start gap-3 border border-amber-200">
+                        <Calendar className="mt-0.5 shrink-0 text-amber-600" size={20} />
+                        <div>
+                            <p className="font-extrabold text-sm">Round Not Started Yet</p>
+                            <p className="text-xs text-amber-800 mt-0.5">
+                                Submissions for this round will open on <strong>{formatDateTime(startTime)}</strong>. You can review the instructions above and prepare your materials in advance.
+                            </p>
                         </div>
                     </div>
                 )}
@@ -287,223 +292,144 @@ export default function RoundSubmissionPage() {
                 ) : null}
 
                 {/* Submission Form (Leader Only) */}
-                {team && isLeader && (
-                    <div className="border-t border-gray-100 pt-8">
-                        <h3 className="text-xl font-black text-gray-900 mb-6">Your Team Submission</h3>
+                {team && isLeader && (() => {
+                    const submissionConfig = normalizeSubmissionConfig(round.submission_type, round.round_number, round.name)
+                    const fields = submissionConfig.fields
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                    return (
+                        <div className="border-t border-gray-100 pt-8">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 className="text-xl font-black text-gray-900">Your Team Submission</h3>
+                                    <p className="text-xs text-gray-500 font-medium mt-0.5">
+                                        Fill in all mandatory requirements configured for this round.
+                                    </p>
+                                </div>
+                                {existingSubmission && (
+                                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1.5">
+                                        <CheckCircle2 size={13} /> Submitted (Editable)
+                                    </span>
+                                )}
+                            </div>
 
-                            {/* ROUND 1 FORM: PPT & Architecture */}
-                            {isRound1 && (
-                                <div className="space-y-6">
-                                    <div className="bg-blue-50/70 p-4 rounded-xl border border-blue-100 text-xs text-blue-900 space-y-1">
-                                        <p className="font-bold">Round 1 Requirements Checklist:</p>
-                                        <ul className="list-disc pl-5 space-y-0.5">
-                                            <li>Problem Definition & Proposed Solution approach for your chosen statement.</li>
-                                            <li>System Architecture Diagram (Microservices, ML pipeline, APIs, DB Schema).</li>
-                                            <li>Presentation slides link (set Google Slides / Drive link sharing to Anyone with Link).</li>
-                                        </ul>
-                                    </div>
+                            <form onSubmit={handleSubmit} className="space-y-6">
 
-                                    <div>
-                                        <label className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-2">
-                                            <LinkIcon size={16} className="text-blue-600" />
-                                            Google Slides / Presentation Link <span className="text-red-500">*</span>
+                                {/* 1. TEXT INPUT RESPONSE */}
+                                {fields.text.enabled && (
+                                    <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-2">
+                                        <label className="flex items-center gap-2 text-sm font-extrabold text-gray-900">
+                                            <FileText size={16} className="text-blue-600" />
+                                            {fields.text.label || 'Written Solution & Technical Summary'}
+                                            {fields.text.required && <span className="text-red-500">*</span>}
                                         </label>
-                                        <input
-                                            type="url"
-                                            value={formData.link}
-                                            required
-                                            onChange={e => setFormData({ ...formData, link: e.target.value })}
+                                        <textarea
+                                            value={formData.text_response}
+                                            required={fields.text.required}
+                                            rows={5}
+                                            onChange={e => setFormData({ ...formData, text_response: e.target.value })}
                                             disabled={isClosed}
-                                            placeholder="https://docs.google.com/presentation/d/... or Canva / OneDrive"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm font-medium disabled:bg-gray-50"
+                                            placeholder={fields.text.placeholder || 'Describe your approach, system architecture, methodology, and implementation highlights...'}
+                                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm font-medium disabled:bg-gray-100 leading-relaxed"
                                         />
-                                        <p className="text-[11px] text-gray-400 mt-1.5">* Ensure link access is set to "Anyone with the link can view".</p>
                                     </div>
+                                )}
 
-                                    <div>
-                                        <label className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-2">
-                                            <Layers size={16} className="text-blue-600" />
-                                            System Architecture Diagram Link / Image URL <span className="text-red-500">*</span>
+                                {/* 2. LIVE DEMO / DEPLOYED LINK / VIDEO */}
+                                {fields.live_demo.enabled && (
+                                    <div className="bg-emerald-50/40 p-5 rounded-2xl border border-emerald-100 space-y-2">
+                                        <label className="flex items-center gap-2 text-sm font-extrabold text-gray-900">
+                                            <Video size={16} className="text-emerald-600" />
+                                            {fields.live_demo.label || 'Live App URL / Demo Video Link'}
+                                            {fields.live_demo.required && <span className="text-red-500">*</span>}
                                         </label>
                                         <input
                                             type="url"
                                             value={formData.file_url}
-                                            required
+                                            required={fields.live_demo.required}
                                             onChange={e => setFormData({ ...formData, file_url: e.target.value })}
                                             disabled={isClosed}
-                                            placeholder="https://drive.google.com/... or Figma / Eraser.io / Imgur direct image link"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm font-medium disabled:bg-gray-50"
+                                            placeholder={fields.live_demo.placeholder || 'https://your-app.vercel.app or Loom / YouTube video URL'}
+                                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600 text-sm font-medium disabled:bg-gray-100"
                                         />
+                                        <p className="text-[11px] text-gray-500 font-medium">
+                                            * Ensure video/link is publicly viewable without requiring sign-in permissions.
+                                        </p>
                                     </div>
+                                )}
 
-                                    <div>
-                                        <label className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-2">
-                                            <FileText size={16} className="text-blue-600" />
-                                            Executive Problem & Proposed Solution Summary <span className="text-red-500">*</span>
-                                        </label>
-                                        <textarea
-                                            value={formData.text_response}
-                                            required
-                                            rows={5}
-                                            onChange={e => setFormData({ ...formData, text_response: e.target.value })}
-                                            disabled={isClosed}
-                                            placeholder="Summarize the core problem statement, your proposed AI methodology, data pipeline, and why your solution stands out..."
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm font-medium disabled:bg-gray-50 leading-relaxed"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-2">
-                                            <FileText size={16} className="text-blue-600" />
-                                            Key Tech Stack & Planned AI Models <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={formData.chatgpt_link_2}
-                                            required
-                                            onChange={e => setFormData({ ...formData, chatgpt_link_2: e.target.value })}
-                                            disabled={isClosed}
-                                            placeholder="e.g. Next.js, PyTorch, YOLOv8, FastAPI, PostgreSQL, Supabase, Pinecone"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm font-medium disabled:bg-gray-50"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* ROUND 2 FORM: Code Demo & Working Product */}
-                            {isRound2 && (
-                                <div className="space-y-6">
-                                    <div className="bg-emerald-50/70 p-4 rounded-xl border border-emerald-100 text-xs text-emerald-900 space-y-1">
-                                        <p className="font-bold">Round 2 Requirements Checklist:</p>
-                                        <ul className="list-disc pl-5 space-y-0.5">
-                                            <li>Clean, well-documented source code repository on GitHub.</li>
-                                            <li>Live deployed application link (e.g. Vercel, Streamlit, HuggingFace Space, AWS).</li>
-                                            <li>Video demo walkthrough showing the working features and UI (Loom, YouTube, Drive).</li>
-                                        </ul>
-                                    </div>
-
-                                    <div>
-                                        <label className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-2">
+                                {/* 3. GITHUB REPOSITORY LINK */}
+                                {fields.github.enabled && (
+                                    <div className="bg-slate-900/5 p-5 rounded-2xl border border-slate-200 space-y-2">
+                                        <label className="flex items-center gap-2 text-sm font-extrabold text-gray-900">
                                             <Github size={16} className="text-slate-900" />
-                                            GitHub Repository Link <span className="text-red-500">*</span>
+                                            {fields.github.label || 'GitHub Repository Link'}
+                                            {fields.github.required && <span className="text-red-500">*</span>}
                                         </label>
                                         <input
                                             type="url"
                                             value={formData.github_url}
-                                            required
+                                            required={fields.github.required}
                                             onChange={e => setFormData({ ...formData, github_url: e.target.value })}
                                             disabled={isClosed}
-                                            placeholder="https://github.com/your-team/your-repo"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm font-medium disabled:bg-gray-50"
+                                            placeholder={fields.github.placeholder || 'https://github.com/your-team/your-repo'}
+                                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm font-medium disabled:bg-gray-100"
                                         />
-                                        <p className="text-[11px] text-gray-400 mt-1.5">* Ensure the repository is Public or access is provided to judges.</p>
+                                        <p className="text-[11px] text-gray-500 font-medium">
+                                            * Ensure repository is set to Public or read access is provided to organizers/judges.
+                                        </p>
                                     </div>
+                                )}
 
-                                    <div>
-                                        <label className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-2">
-                                            <ExternalLink size={16} className="text-emerald-600" />
-                                            Live Deployed Application URL <span className="text-red-500">*</span>
+                                {/* 4. PRESENTATION / PPT LINK */}
+                                {fields.ppt.enabled && (
+                                    <div className="bg-purple-50/40 p-5 rounded-2xl border border-purple-100 space-y-2">
+                                        <label className="flex items-center gap-2 text-sm font-extrabold text-gray-900">
+                                            <LinkIcon size={16} className="text-purple-600" />
+                                            {fields.ppt.label || 'Presentation / Google Slides Link'}
+                                            {fields.ppt.required && <span className="text-red-500">*</span>}
                                         </label>
                                         <input
                                             type="url"
                                             value={formData.link}
-                                            required
+                                            required={fields.ppt.required}
                                             onChange={e => setFormData({ ...formData, link: e.target.value })}
                                             disabled={isClosed}
-                                            placeholder="https://your-app.vercel.app or https://huggingface.co/spaces/..."
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600 text-sm font-medium disabled:bg-gray-50"
+                                            placeholder={fields.ppt.placeholder || 'https://docs.google.com/presentation/d/... or Canva / OneDrive'}
+                                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-sm font-medium disabled:bg-gray-100"
                                         />
+                                        <p className="text-[11px] text-gray-500 font-medium">
+                                            * Ensure link access is set to "Anyone with the link can view".
+                                        </p>
                                     </div>
+                                )}
 
-                                    <div>
-                                        <label className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-2">
-                                            <Video size={16} className="text-blue-600" />
-                                            Demo Video Walkthrough Link <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="url"
-                                            value={formData.file_url}
-                                            required
-                                            onChange={e => setFormData({ ...formData, file_url: e.target.value })}
-                                            disabled={isClosed}
-                                            placeholder="https://www.loom.com/share/... or YouTube / Google Drive video"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm font-medium disabled:bg-gray-50"
-                                        />
+                                {/* Error & Success Messages */}
+                                {error && (
+                                    <div className="p-4 bg-red-50 text-red-700 text-xs font-semibold rounded-xl border border-red-200 flex items-center gap-2">
+                                        <AlertCircle size={16} />
+                                        <span>{error}</span>
                                     </div>
-
-                                    <div>
-                                        <label className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-2">
-                                            <FileText size={16} className="text-gray-900" />
-                                            Implemented Features & Technical Highlights <span className="text-red-500">*</span>
-                                        </label>
-                                        <textarea
-                                            value={formData.text_response}
-                                            required
-                                            rows={5}
-                                            onChange={e => setFormData({ ...formData, text_response: e.target.value })}
-                                            disabled={isClosed}
-                                            placeholder="Describe what features you implemented, model accuracy/benchmarks achieved, UI features, challenges resolved, and future scope..."
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 text-sm font-medium disabled:bg-gray-50 leading-relaxed"
-                                        />
+                                )}
+                                {success && (
+                                    <div className="p-4 bg-emerald-50 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200 flex items-center gap-2">
+                                        <CheckCircle2 size={16} />
+                                        <span>{success}</span>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {/* Fallback for Generic Round types */}
-                            {!isRound1 && !isRound2 && (
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-900 mb-2">Submission Link</label>
-                                        <input
-                                            type="url"
-                                            value={formData.link}
-                                            onChange={e => setFormData({ ...formData, link: e.target.value })}
-                                            disabled={isClosed}
-                                            placeholder="https://..."
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-900 mb-2">Summary / Details</label>
-                                        <textarea
-                                            value={formData.text_response}
-                                            rows={5}
-                                            onChange={e => setFormData({ ...formData, text_response: e.target.value })}
-                                            disabled={isClosed}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Error & Success Messages */}
-                            {error && (
-                                <div className="p-4 bg-red-50 text-red-700 text-xs font-semibold rounded-xl border border-red-200 flex items-center gap-2">
-                                    <AlertCircle size={16} />
-                                    <span>{error}</span>
-                                </div>
-                            )}
-                            {success && (
-                                <div className="p-4 bg-emerald-50 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200 flex items-center gap-2">
-                                    <CheckCircle2 size={16} />
-                                    <span>{success}</span>
-                                </div>
-                            )}
-
-                            {/* Submit Button */}
-                            <button
-                                type="submit"
-                                disabled={isClosed || submitting}
-                                className="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed shadow-md flex items-center justify-center gap-2"
-                            >
-                                <Send size={16} />
-                                {submitting ? 'Saving Submission...' : isClosed ? 'Deadline Passed' : existingSubmission ? 'Update Submission' : 'Submit Final Work'}
-                            </button>
-                        </form>
-                    </div>
-                )}
+                                {/* Submit Button */}
+                                <button
+                                    type="submit"
+                                    disabled={isClosed || submitting}
+                                    className="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                                >
+                                    <Send size={16} />
+                                    {submitting ? 'Saving Submission...' : isClosed ? 'Deadline Passed' : existingSubmission ? 'Update Submission' : 'Submit Final Work'}
+                                </button>
+                            </form>
+                        </div>
+                    )
+                })()}
             </div>
         </div>
     )

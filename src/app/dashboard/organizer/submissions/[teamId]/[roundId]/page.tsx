@@ -14,6 +14,9 @@ import {
     AlertCircle 
 } from 'lucide-react'
 import CopyButton from '@/components/CopyButton'
+import { normalizeSubmissionConfig } from '@/lib/submissionConfig'
+import { normalizeRubric, calculateMaxScore } from '@/lib/rubricConfig'
+import { formatDateTime } from '@/lib/dateUtils'
 
 export default async function OrganizerSubmissionDetail({
     params,
@@ -55,11 +58,9 @@ export default async function OrganizerSubmissionDetail({
     }
 
     const selectedProblem = sel?.problem_statements
-    const isRound1 = round.round_number === 1 || round.submission_type?.includes('problem_architecture_ppt') || round.name?.toLowerCase().includes('round 1')
-    const isRound2 = round.round_number === 2 || round.submission_type?.includes('product_code_demo') || round.name?.toLowerCase().includes('round 2')
 
-    const rubric = round.rubric || {}
-    const maxScore = Object.values(rubric).reduce((sum: number, val: any) => sum + (Number(val) || 0), 0)
+    const quantitativeRubric = normalizeRubric(round.rubric, round.round_number, round.name)
+    const maxScore = calculateMaxScore(quantitativeRubric)
 
     return (
         <div className="max-w-6xl mx-auto space-y-6 pb-16">
@@ -76,206 +77,145 @@ export default async function OrganizerSubmissionDetail({
                             <span className="font-mono text-xs font-black px-2.5 py-1 rounded bg-emerald-100 text-emerald-800">
                                 {selectedProblem.statement_code}
                             </span>
-                            <span className="text-xs font-bold text-emerald-700 bg-emerald-100/60 px-2 py-0.5 rounded-full">
-                                {selectedProblem.domain}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <CopyButton
-                                text={`${selectedProblem.statement_code}: ${selectedProblem.title}\n\n${selectedProblem.description}`}
-                                label="Copy Statement"
-                                variant="pill"
-                            />
-                            <span className="text-xs font-black text-emerald-700 uppercase tracking-wider flex items-center gap-1">
-                                <Lightbulb size={14} className="text-amber-500" /> Team Problem Statement
-                            </span>
+                            <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">{selectedProblem.domain}</span>
                         </div>
                     </div>
-                    <h3 className="text-lg font-black text-emerald-950 mb-2">{selectedProblem.title}</h3>
-                    <p className="text-xs text-emerald-950 whitespace-pre-line leading-relaxed bg-white/70 p-3.5 rounded-xl border border-emerald-200/60 font-medium">{selectedProblem.description}</p>
+                    <h3 className="text-lg font-black text-gray-900 mb-1">{selectedProblem.title}</h3>
+                    <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">{selectedProblem.description}</p>
                 </div>
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* Left Column: Submission Content */}
+                
+                {/* Left Column: Submission Deliverables */}
                 <div className="lg:col-span-7 space-y-6">
                     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                        
+                        {/* Header */}
                         <div className="bg-slate-900 px-8 py-6 text-white flex justify-between items-start">
                             <div>
-                                <div className="flex items-center gap-2.5">
-                                    <h2 className="text-2xl font-black">{team.team_name}</h2>
-                                    {team.team_code && (
-                                        <span className="text-xs font-mono bg-blue-500/30 text-blue-200 border border-blue-400/30 px-2 py-0.5 rounded font-bold">
-                                            ID: {team.team_code}
-                                        </span>
-                                    )}
-                                </div>
-                                <p className="text-blue-400 font-bold uppercase tracking-wider text-xs mt-0.5">
-                                    {round.round_number ? `Round ${round.round_number}: ` : ''}{round.name}
-                                </p>
+                                <span className="text-xs font-bold text-blue-400 uppercase tracking-widest block mb-1">
+                                    {round.round_number ? `Round ${round.round_number}` : 'Competition Round'}
+                                </span>
+                                <h1 className="text-2xl font-black text-white">{team.team_name}</h1>
+                                <p className="text-xs text-gray-400 mt-1 font-mono">Team ID: {team.id}</p>
                             </div>
-
-                            <div className="bg-white/10 px-3.5 py-1.5 rounded-xl text-center border border-white/20">
-                                <span className="text-[10px] font-bold text-blue-200 uppercase tracking-widest block">Submitted At</span>
-                                <span className="text-xs font-bold text-white">
-                                    {new Date(submission.submitted_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            <div className="text-right">
+                                <span className="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">Submitted On</span>
+                                <span suppressHydrationWarning className="text-xs font-bold text-white">
+                                    {formatDateTime(submission.submitted_at)}
                                 </span>
                             </div>
                         </div>
 
                         <div className="p-8 space-y-6">
-                            {/* ROUND 1 VIEW */}
-                            {isRound1 && (
-                                <>
-                                    {submission.link && (
-                                        <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-5 flex items-center justify-between gap-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center">
-                                                    <FileText size={20} />
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Round 1 PPT Link</p>
-                                                    <p className="text-sm font-black text-gray-900">Google Slides Presentation</p>
-                                                </div>
-                                            </div>
-                                            <a
-                                                href={submission.link.startsWith('http') ? submission.link : `https://${submission.link}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="px-5 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm inline-flex items-center gap-1.5"
-                                            >
-                                                Open Presentation <ExternalLink size={14} />
-                                            </a>
-                                        </div>
-                                    )}
+                            {(() => {
+                                const submissionConfig = normalizeSubmissionConfig(round.submission_type, round.round_number, round.name)
+                                const fields = submissionConfig.fields
 
-                                    {submission.file_url && (
-                                        <div className="bg-indigo-50/60 border border-indigo-100 rounded-xl p-5 flex items-center justify-between gap-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center">
-                                                    <Layers size={20} />
+                                return (
+                                    <>
+                                        {/* 1. Presentation Slides Link */}
+                                        {submission.link && (
+                                            <div className="bg-purple-50/60 border border-purple-100 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                    <div className="w-10 h-10 rounded-lg bg-purple-600 text-white flex items-center justify-center shrink-0">
+                                                        <FileText size={20} />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">
+                                                            {fields.ppt.label || 'Presentation / Slides Link'}
+                                                        </p>
+                                                        <p className="text-sm font-black text-gray-900 truncate">{submission.link}</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Architecture Diagram</p>
-                                                    <p className="text-sm font-black text-gray-900">System Architecture Blueprint</p>
-                                                </div>
+                                                <a
+                                                    href={submission.link.startsWith('http') ? submission.link : `https://${submission.link}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-5 py-2.5 bg-purple-600 text-white rounded-lg text-xs font-bold hover:bg-purple-700 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap"
+                                                >
+                                                    Open Link <ExternalLink size={14} />
+                                                </a>
                                             </div>
-                                            <a
-                                                href={submission.file_url.startsWith('http') ? submission.file_url : `https://${submission.file_url}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="px-5 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm inline-flex items-center gap-1.5"
-                                            >
-                                                Open Diagram <ExternalLink size={14} />
-                                            </a>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {submission.text_response && (
-                                        <div className="space-y-2">
-                                            <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                                <FileText size={15} /> Problem Definition & Proposed Solution
-                                            </h4>
-                                            <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 text-gray-800 text-sm font-medium leading-relaxed whitespace-pre-wrap">
-                                                {submission.text_response}
+                                        {/* 2. GitHub Code Repository */}
+                                        {submission.github_url && (
+                                            <div className="bg-slate-900 text-white rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+                                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                    <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0">
+                                                        <Github size={22} />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-[10px] font-bold text-blue-300 uppercase tracking-wider">
+                                                            {fields.github.label || 'Source Code Repository'}
+                                                        </p>
+                                                        <p className="text-sm font-bold text-white font-mono truncate">{submission.github_url}</p>
+                                                    </div>
+                                                </div>
+                                                <a
+                                                    href={submission.github_url.startsWith('http') ? submission.github_url : `https://${submission.github_url}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-5 py-2.5 bg-white text-slate-900 rounded-lg text-xs font-black hover:bg-gray-100 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap"
+                                                >
+                                                    Inspect Repo <ExternalLink size={14} />
+                                                </a>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {submission.chatgpt_link_2 && (
-                                        <div className="space-y-2">
-                                            <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                                <Layers size={15} /> Planned Tech Stack & AI Models
-                                            </h4>
-                                            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-gray-800 text-sm font-semibold">
-                                                {submission.chatgpt_link_2}
+                                        {/* 3. Live Demo / Deployed Link / Video URL */}
+                                        {submission.file_url && (
+                                            <div className="bg-emerald-50/60 border border-emerald-200 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                    <div className="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                                                        <Video size={20} />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                                                            {fields.live_demo.label || 'Live App / Demo Video Link'}
+                                                        </p>
+                                                        <p className="text-sm font-black text-gray-900 truncate">{submission.file_url}</p>
+                                                    </div>
+                                                </div>
+                                                <a
+                                                    href={submission.file_url.startsWith('http') ? submission.file_url : `https://${submission.file_url}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-5 py-2.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap"
+                                                >
+                                                    Open Link <ExternalLink size={14} />
+                                                </a>
                                             </div>
-                                        </div>
-                                    )}
-                                </>
-                            )}
+                                        )}
 
-                            {/* ROUND 2 VIEW */}
-                            {isRound2 && (
-                                <>
-                                    {submission.github_url && (
-                                        <div className="bg-slate-900 text-white rounded-xl p-5 flex items-center justify-between gap-4 shadow-sm">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-white">
-                                                    <Github size={22} />
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-blue-300 uppercase tracking-wider">GitHub Code Repository</p>
-                                                    <p className="text-sm font-bold text-white font-mono truncate max-w-xs">{submission.github_url}</p>
+                                        {/* 4. Text / Written Response */}
+                                        {submission.text_response && (
+                                            <div className="space-y-2">
+                                                <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                                    <FileText size={15} /> {fields.text.label || 'Written Solution & Summary'}
+                                                </h4>
+                                                <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 text-gray-800 text-sm font-medium leading-relaxed whitespace-pre-wrap">
+                                                    {submission.text_response}
                                                 </div>
                                             </div>
-                                            <a
-                                                href={submission.github_url.startsWith('http') ? submission.github_url : `https://${submission.github_url}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="px-5 py-2 bg-white text-slate-900 rounded-lg text-xs font-black hover:bg-gray-100 transition-colors shadow-sm inline-flex items-center gap-1.5"
-                                            >
-                                                Inspect Repo <ExternalLink size={14} />
-                                            </a>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {submission.link && (
-                                        <div className="bg-emerald-50/60 border border-emerald-200 rounded-xl p-5 flex items-center justify-between gap-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
-                                                    <ExternalLink size={20} />
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Live Working Application</p>
-                                                    <p className="text-sm font-black text-gray-900">Deployed URL</p>
-                                                </div>
-                                            </div>
-                                            <a
-                                                href={submission.link.startsWith('http') ? submission.link : `https://${submission.link}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="px-5 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors shadow-sm inline-flex items-center gap-1.5"
-                                            >
-                                                Open Live App <ExternalLink size={14} />
-                                            </a>
-                                        </div>
-                                    )}
-
-                                    {submission.file_url && (
-                                        <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-5 flex items-center justify-between gap-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center">
-                                                    <Video size={20} />
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Demo Walkthrough Video</p>
-                                                    <p className="text-sm font-black text-gray-900">Product Walkthrough</p>
+                                        {/* 5. Additional Tech Stack / Secondary Details */}
+                                        {submission.chatgpt_link_2 && (
+                                            <div className="space-y-2">
+                                                <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                                    <Layers size={15} /> Planned Tech Stack & AI Models
+                                                </h4>
+                                                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-gray-800 text-sm font-semibold">
+                                                    {submission.chatgpt_link_2}
                                                 </div>
                                             </div>
-                                            <a
-                                                href={submission.file_url.startsWith('http') ? submission.file_url : `https://${submission.file_url}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="px-5 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm inline-flex items-center gap-1.5"
-                                            >
-                                                Watch Video <ExternalLink size={14} />
-                                            </a>
-                                        </div>
-                                    )}
-
-                                    {submission.text_response && (
-                                        <div className="space-y-2">
-                                            <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                                <FileText size={15} /> Implemented Features & Technical Architecture
-                                            </h4>
-                                            <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 text-gray-800 text-sm font-medium leading-relaxed whitespace-pre-wrap">
-                                                {submission.text_response}
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
-                            )}
+                                        )}
+                                    </>
+                                )
+                            })()}
                         </div>
                     </div>
                 </div>
@@ -308,15 +248,48 @@ export default async function OrganizerSubmissionDetail({
                                     </div>
                                 </div>
 
-                                {score.criteria_scores && (
-                                    <div className="space-y-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Criteria Breakdown</h4>
-                                        {Object.entries(score.criteria_scores).map(([k, v]) => (
-                                            <div key={k} className="flex justify-between items-center text-xs font-semibold">
-                                                <span className="text-gray-700">{k}</span>
-                                                <span className="text-blue-700 font-mono font-bold">{v as any} / {rubric[k] || 10}</span>
-                                            </div>
-                                        ))}
+                                {score.criteria_scores && Object.keys(score.criteria_scores).length > 0 && (
+                                    <div className="space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Quantitative Criteria Breakdown</h4>
+                                        {Object.entries(score.criteria_scores).map(([critTitle, pts]) => {
+                                            const criterionObj = quantitativeRubric.criteria.find(c => c.title === critTitle)
+                                            const ptsNum = Number(pts)
+                                            
+                                            let tierLabel = 'Custom Score'
+                                            let tierColor = 'bg-blue-100 text-blue-800'
+                                            if (ptsNum === 10) {
+                                                tierLabel = '🟢 Excellent (10 pts)'
+                                                tierColor = 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                                            } else if (ptsNum === 7) {
+                                                tierLabel = '🔵 Good (7 pts)'
+                                                tierColor = 'bg-blue-100 text-blue-800 border-blue-200'
+                                            } else if (ptsNum === 4) {
+                                                tierLabel = '🟡 Fair (4 pts)'
+                                                tierColor = 'bg-amber-100 text-amber-800 border-amber-200'
+                                            } else if (ptsNum === 2) {
+                                                tierLabel = '🔴 Needs Improvement (2 pts)'
+                                                tierColor = 'bg-rose-100 text-rose-800 border-rose-200'
+                                            }
+
+                                            return (
+                                                <div key={critTitle} className="p-3 bg-white rounded-xl border border-slate-200 text-xs space-y-1.5 shadow-xs">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="font-bold text-gray-900">{critTitle}</span>
+                                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${tierColor}`}>
+                                                            {tierLabel}
+                                                        </span>
+                                                    </div>
+                                                    {criterionObj && (
+                                                        <p className="text-[11px] text-gray-600 leading-relaxed italic">
+                                                            {ptsNum === 10 ? criterionObj.tiers['Excellent'] :
+                                                             ptsNum === 7 ? criterionObj.tiers['Good'] :
+                                                             ptsNum === 4 ? criterionObj.tiers['Fair'] :
+                                                             ptsNum === 2 ? criterionObj.tiers['Needs Improvement'] : ''}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )
+                                        })}
                                     </div>
                                 )}
 
