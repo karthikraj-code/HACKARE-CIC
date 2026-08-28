@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS public.problem_statements (
   title TEXT NOT NULL,
   description TEXT NOT NULL,
   domain TEXT NOT NULL, -- e.g., 'Healthcare AI', 'FinTech', etc.
-  max_teams INTEGER NOT NULL DEFAULT 3,
+  max_teams INTEGER NOT NULL DEFAULT 2,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS public.team_members (
   PRIMARY KEY (team_id, user_id)
 );
 
--- 6. Team Problem Statement Selections Table (1 per team, max 3 teams per statement)
+-- 6. Team Problem Statement Selections Table (1 per team, max 2 teams per statement)
 CREATE TABLE IF NOT EXISTS public.problem_selections (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   problem_id UUID REFERENCES public.problem_statements(id) ON DELETE CASCADE NOT NULL,

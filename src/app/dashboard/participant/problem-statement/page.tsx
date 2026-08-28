@@ -136,7 +136,7 @@ export default function ProblemStatementSelectionPage() {
                         </div>
                         <h1 className="text-3xl font-extrabold text-gray-900">Problem Statement Selection</h1>
                         <p className="text-gray-600 text-sm mt-1 max-w-2xl">
-                            Each problem statement can be chosen by a maximum of <strong className="text-gray-900">3 teams</strong> on a first-come, first-served basis. Only the Team Leader can lock the choice.
+                            Each problem statement can be chosen by a maximum of <strong className="text-gray-900">2 teams</strong> on a first-come, first-served basis. Only the Team Leader can lock the choice.
                         </p>
                     </div>
 
@@ -339,7 +339,7 @@ export default function ProblemStatementSelectionPage() {
                     const isSelectedByThisTeam = userSelection?.problem_id === problem.id
                     const isFull = problem.is_full
                     const slotsTaken = problem.current_teams || 0
-                    const maxSlots = problem.max_teams || 3
+                    const maxSlots = problem.max_teams || 2
                     const slotsLeft = Math.max(0, maxSlots - slotsTaken)
 
                     return (
@@ -368,7 +368,7 @@ export default function ProblemStatementSelectionPage() {
                                     {/* Capacity Status */}
                                     {isFull ? (
                                         <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-red-100 text-red-700 border border-red-200 shrink-0 flex items-center gap-1">
-                                            <Lock size={12} /> FULL (3/3)
+                                            <Lock size={12} /> FULL ({maxSlots}/{maxSlots})
                                         </span>
                                     ) : (
                                         <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
@@ -407,7 +407,7 @@ export default function ProblemStatementSelectionPage() {
                                             className={`h-full transition-all duration-300 ${
                                                 isFull
                                                     ? 'bg-red-500'
-                                                    : slotsTaken === 2
+                                                    : slotsLeft === 1
                                                     ? 'bg-amber-500'
                                                     : 'bg-emerald-500'
                                             }`}
@@ -443,7 +443,7 @@ export default function ProblemStatementSelectionPage() {
                                         disabled
                                         className="w-full py-2.5 bg-gray-200 text-gray-400 rounded-xl text-sm font-bold cursor-not-allowed flex items-center justify-center gap-2"
                                     >
-                                        <Lock size={16} /> Capacity Full (3/3 Teams)
+                                        <Lock size={16} /> Capacity Full ({maxSlots}/{maxSlots} Teams)
                                     </button>
                                 ) : (
                                     <button

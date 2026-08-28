@@ -1,209 +1,200 @@
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient, createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 
 export const PROBLEM_STATEMENTS_DATA = [
-    // --- 1. Campus Intelligence & Knowledge ---
+    // --- 1. Feed Systems & Caching Architecture ---
     {
         statement_code: 'PS-01',
-        domain: 'Campus Intelligence & Knowledge',
-        title: 'The Campus That Forgot',
-        description: 'Every year, students at a university build projects, publish research, win competitions, and organize events. But when they graduate, much of that knowledge disappears with them. Important files are scattered across drives, emails, WhatsApp groups, and old folders. A junior working on a similar project may spend weeks searching for information that already exists. The university wants to build an intelligent institutional memory. Imagine a system that can understand the university\'s past and make it useful for the future. Can it automatically organize years of documents and achievements? Can students ask questions about previous projects and instantly find relevant work? Can it identify repeated problems, missing knowledge, or opportunities for new projects? Build a solution that ensures no great idea is forgotten when its creator leaves.',
-        max_teams: 3
+        domain: 'Feed Systems & Multi-Tier Caching',
+        title: 'Where Did the Old Reels Go? – Instagram Feed & Cache',
+        description: "When an influencer's profile is opened, only the most recent reels load instantly even though thousands exist in total. As the user scrolls further back, older reels must still appear smoothly without the app fetching or rendering everything at once. Your task is to reverse-engineer how Instagram likely handles this at scale — including how content is paginated, what gets cached at the client vs. server, and how storage tiers (hot vs. cold) are organized. Design a simplified system that demonstrates efficient retrieval of historical content using pagination, lazy loading, and layered caching. Clearly justify your choice of cache eviction policy and data-fetching strategy. The final design should show how it avoids unnecessary load while keeping scroll experience seamless",
+        max_teams: 2
     },
 
-    // --- 2. Food Sustainability & Supply Chain ---
+    // --- 2. Geospatial & Real-Time Dispatch ---
     {
         statement_code: 'PS-02',
-        domain: 'Food Sustainability & Supply Chain',
-        title: 'The Market That Wastes Food',
-        description: 'Every morning, local markets receive fresh vegetables, fruits, and other perishable goods from different suppliers. By the end of the day, some vendors run out of popular items while others are left with large quantities that nobody wants to buy. The next morning, the cycle starts again. Most vendors make stocking decisions based on experience and intuition. Weather changes, local events, weekends, festivals, and changing customer preferences can completely alter demand. The result is lost income for vendors and thousands of kilograms of perfectly usable food going to waste. Imagine a system that could help vendors understand what tomorrow might look like. Can it predict demand for different products? Can it identify items likely to become surplus? Can it suggest better purchasing or pricing decisions before the waste happens? Build a solution that helps markets sell smarter and waste less.',
-        max_teams: 3
+        domain: 'Geospatial Indexing & Real-Time Dispatch',
+        title: 'Who Gets the Ride? – Rapido/Ola/Uber Rider Allocation',
+        description: "In a busy city, thousands of ride requests can hit the platform within the same second, each needing to be matched with an available driver almost instantly. Your task is to design a rider-driver matching engine that decides allocation based on live location, driver availability, distance, estimated time of arrival, and request priority (e.g., surge zones or waiting time). Address how the system avoids double-assigning a driver and how it handles a driver rejecting or timing out on a request. Explore the underlying data structures (e.g., geospatial indexing) needed to search nearby drivers efficiently. The design should balance fairness, speed, and resource utilization under high concurrent load.",
+        max_teams: 2
     },
 
-    // --- 3. Disaster Management & Emergency Response ---
+    // --- 3. Video Streaming & CDNs ---
     {
         statement_code: 'PS-03',
-        domain: 'Disaster Management & Emergency Response',
-        title: 'When the City Goes Dark',
-        description: 'At 8:30 PM, a powerful storm hits a city. Within an hour, several roads are flooded, electricity goes down in multiple neighborhoods, and emergency calls begin increasing. The city\'s response teams have information coming from weather systems, traffic cameras, hospitals, citizens, and field officers — but each source tells only a small part of the story. Meanwhile, emergency teams must decide where to send ambulances, rescue personnel, generators, and other resources first. A delayed decision could leave an entire neighborhood without help. What if all this information could be brought together into one intelligent system? Can it identify areas at greatest risk? Can it prioritize emergency requests based on severity and location? Can it help authorities understand how the situation is changing in real time? Build the intelligence that helps a city respond before chaos takes over.',
-        max_teams: 3
+        domain: 'Video Streaming & CDN Distribution',
+        title: 'One Movie, Millions of Screens – Netflix Streaming',
+        description: "When a popular title is released, millions of users may stream it at the exact same time from different regions and devices. Your task is to reverse-engineer how such simultaneous demand is served without a single server buckling under load. Explore how video is broken into segments, how metadata and thumbnails are delivered separately from the main stream, and how content delivery networks (CDNs) cache data closer to users. Design a simplified architecture showing request flow from a user's play button click to the video segment being served. Explain how caching and geographic distribution reduce latency and central server load.",
+        max_teams: 2
     },
 
-    // --- 4. Smart Agriculture & Climate Tech ---
+    // --- 4. Live Broadcasting & Traffic Surge ---
     {
         statement_code: 'PS-04',
-        domain: 'Smart Agriculture & Climate Tech',
-        title: "The Farmer's Gamble",
-        description: 'For a farmer, planting a crop is a decision that can determine the success of an entire season. But today\'s conditions are becoming harder to predict. Rain may arrive early or disappear for weeks. A pest outbreak can spread across fields. Fertilizer prices change, while the market price of a crop may fall just before harvest. Farmers often have access to weather forecasts, soil information, market prices, and agricultural advice — but these sources rarely work together. Imagine bringing all of this information into one place. Can your system identify risks before they seriously affect a crop? Can it recommend suitable crops or planting periods? Can it help farmers make decisions based on both environmental conditions and expected returns? Turn uncertainty into better decisions for the people who grow our food.',
-        max_teams: 3
+        domain: 'Live Broadcasting & Traffic Surge Resilience',
+        title: 'Hotstar Peak-Time Challenge – Millions Watching Together',
+        description: "During a marquee live event like a cricket final, millions of viewers attempt to start streaming within the same few minutes, creating an extreme, short-duration traffic spike. Your task is to design a system that can absorb this sudden surge without crashing or significantly degrading video quality. Cover load balancing across servers, session management for millions of concurrent viewers, and caching strategies specific to live (not on-demand) content. Discuss how the system scales up rapidly before the event and scales down afterward. The design should highlight trade-offs between cost, latency, and reliability during peak load.",
+        max_teams: 2
     },
 
-    // --- 5. Healthcare & Emergency Navigation ---
+    // --- 5. Recommendation & Infinite Feeds ---
     {
         statement_code: 'PS-05',
-        domain: 'Healthcare & Emergency Navigation',
-        title: "The Ambulance That Couldn't Wait",
-        description: 'An emergency call comes in at 6:15 PM. An ambulance is dispatched, but it\'s rush hour. The usual route is heavily congested, one road has temporary construction, and the nearest hospital is already receiving multiple emergency patients. The ambulance driver has only minutes to make decisions. Traditional navigation can find a route, but it may not understand the entire emergency situation. What if the system could think beyond simply finding the shortest path? Can it identify the fastest route using live traffic and road conditions? Can it recommend a hospital based on emergency type and current capacity? Can it continuously adapt as conditions change? Build a system that helps emergency teams spend less time navigating and more time saving lives.',
-        max_teams: 3
+        domain: 'Recommendation Engines & Infinite Feeds',
+        title: 'YouTube Infinite Feed – How Does It Keep Loading?',
+        description: 'As a user scrolls the YouTube homepage or Shorts feed, new videos keep appearing seamlessly, as if the list never ends. Your task is to recreate a simplified version of this infinite-scroll mechanism. Explain how pagination or cursor-based fetching works behind the scenes, how the next batch of videos is prefetched before the user reaches the end, and how a recommendation engine decides what to fetch next. Address how caching avoids repeated computation of recommendations for the same session. The final design should demonstrate smooth, low-latency continuous loading without ever fetching the "entire" dataset at once.',
+        max_teams: 2
     },
 
-    // --- 6. Retail Analytics & Small Business Tech ---
+    // --- 6. Concurrency & Inventory Booking ---
     {
         statement_code: 'PS-06',
-        domain: 'Retail Analytics & Small Business Tech',
-        title: "The Small Shop's Big Problem",
-        description: 'A neighborhood grocery store has been running for fifteen years. The owner knows his regular customers and remembers which products usually sell. But the business is growing, and intuition isn\'t enough anymore. Some products frequently run out. Others remain on shelves until they expire. During festivals, demand suddenly changes, while unexpected weather can completely alter buying patterns. Large retail companies solve these problems using sophisticated analytics, but small businesses rarely have access to such tools. Can you build an affordable system that helps a small store understand its business? Can it predict which products will be needed next week? Can it identify slow-moving or soon-to-expire stock? Can it uncover patterns in customer purchases that the owner might miss? Give a small business the intelligence to compete with the big ones.',
-        max_teams: 3
+        domain: 'High-Concurrency Ticketing & Lock Serialization',
+        title: 'Tatkal Rush – One Train, Thousands of Users',
+        description: "At exactly 10 AM, thousands of users simultaneously attempt to book a handful of remaining Tatkal train seats, all racing for the same limited inventory. Your task is to design a booking system that guarantees no seat is sold twice (no double booking) despite this extreme concurrency. Explore concepts like database locking, optimistic vs. pessimistic concurrency control, and request queuing to serialize competing requests fairly. Discuss how the system handles a user who reserves a seat but doesn't complete payment in time. The design must clearly demonstrate consistency and fairness under a massive concurrent write load.",
+        max_teams: 2
     },
 
-    // --- 7. Smart Buildings & Energy Management ---
+    // --- 7. Distributed Locking & Real-Time State ---
     {
         statement_code: 'PS-07',
-        domain: 'Smart Buildings & Energy Management',
-        title: "The Building That Couldn't Breathe",
-        description: 'A large commercial building looks perfectly normal from the outside. Inside, however, energy consumption keeps rising. Air-conditioning runs in empty rooms, lights remain switched on, and some floors are barely occupied while others are crowded. The building already has sensors, electricity meters, and access systems — but nobody is connecting the information. The management wants to reduce energy consumption without making the building uncomfortable for the people inside. Can you build a system that understands how the building is actually being used? Can it predict energy demand throughout the day? Can it detect unusual consumption and identify possible wastage? Can it recommend when systems should be adjusted automatically? Make buildings smarter without making people change how they live.',
-        max_teams: 3
+        domain: 'Distributed Locking & State Consistency',
+        title: 'Bus Seat Vanishing Act – Real-Time Seat Booking',
+        description: 'When only a few bus seats remain, hundreds of users may try to select and book the same seats within seconds of each other. Your task is to design a real-time seat availability system that temporarily locks a seat once a user selects it, preventing others from booking it simultaneously. Address what happens if the user abandons the booking — the lock must expire and release the seat automatically. Cover how the system maintains transactional consistency between seat locking, payment, and final confirmation. The design should prevent both double-booking and seats getting "stuck" as falsely unavailable.',
+        max_teams: 2
     },
 
-    // --- 8. Urban Infrastructure & Maintenance ---
+    // --- 8. Traffic Spikes & Portal Scalability ---
     {
         statement_code: 'PS-08',
-        domain: 'Urban Infrastructure & Maintenance',
-        title: 'The Road That Slowly Disappears',
-        description: 'A city maintains thousands of kilometers of roads. Every day, small cracks, potholes, faded markings, damaged signs, and drainage problems appear across them. Most are reported only after someone notices a serious problem — sometimes after an accident has already happened. Maintenance teams cannot inspect every road every day. The city wants to move from reacting to damage to predicting it. Can you build a system that identifies road problems using images, sensors, citizen reports, or historical maintenance data? Can it determine which problems are most urgent? Can it predict which roads are likely to deteriorate next? Help a city fix its roads before its citizens have to complain.',
-        max_teams: 3
+        domain: 'High-Load Systems & Read Caching',
+        title: 'The Result Day Rush – College Portal Under Pressure',
+        description: 'On result day, thousands of students hit the college portal within the same few minutes, causing it to slow down, throw timeouts, or crash entirely. Your task is to first identify the likely bottlenecks — database overload, lack of caching, insufficient server capacity, or no request throttling. Then design a scalable solution using caching (for repeated result lookups), load balancing across servers, request queues to smooth traffic spikes, and database optimization (indexing, read replicas). Also address concurrency control to prevent conflicting reads/writes on student records. The final design should demonstrate graceful handling of a short, extreme traffic spike.',
+        max_teams: 2
     },
 
-    // --- 9. Logistics & Supply Chain Tracking ---
+    // --- 9. Static File Delivery & Edge Caching ---
     {
         statement_code: 'PS-09',
-        domain: 'Logistics & Supply Chain Tracking',
-        title: 'The Package That Went Missing',
-        description: 'A delivery company handles thousands of packages every day. Most reach their destination without a problem, but some are delayed, damaged, misrouted, or completely lost somewhere between warehouses. When something goes wrong, employees often have to manually trace the package through dozens of checkpoints. The company already records scans, locations, timestamps, vehicle details, and delivery attempts — but this information is rarely used proactively. Can you build a system that understands the journey of every package? Can it identify shipments likely to be delayed before they actually are? Can it detect unusual movement patterns? Can it help determine where a package is most likely to have gone missing? Don\'t just track packages. Predict when their journey is about to go wrong.',
-        max_teams: 3
+        domain: 'Static Content Delivery & Edge Caching',
+        title: 'The Exam Paper Rush – Everyone Downloads at Once',
+        description: 'When an exam paper or admit card is released, a huge number of students attempt to download the same file within a very short window. Your task is to design a file-delivery system that can handle this concentrated demand without failing. Explore the role of a CDN and caching in serving the same static file to many users without repeatedly hitting the origin server. Discuss controlled/staggered access mechanisms (e.g., queuing or scheduled release) to prevent overload. The design should ensure fast, reliable downloads for all users despite the traffic being concentrated in a narrow time window.',
+        max_teams: 2
     },
 
-    // --- 10. Smart Tourism & Travel Tech ---
+    // --- 10. Logistics Optimization & Dispatching ---
     {
         statement_code: 'PS-10',
-        domain: 'Smart Tourism & Travel Tech',
-        title: "The Tourist Who Couldn't Find the Real City",
-        description: 'A tourist arrives in a new city with hundreds of places to explore. Search engines show the most popular attractions, but they don\'t understand what the person actually wants. One traveler may love hidden historical places. Another may want local food. Someone else may have only three hours and want to avoid crowded locations. The city already has information about landmarks, restaurants, events, traffic, weather, and visitor patterns — but it exists in disconnected places. Can you build a system that creates experiences rather than simply listing places? Can it understand a traveler\'s interests and constraints? Can it adapt the plan as weather, crowds, or time changes? Can it help visitors discover places they might never have searched for? Don\'t show tourists the city everyone visits. Help them discover their own version of it.',
-        max_teams: 3
+        domain: 'On-Demand Delivery & Fleet Optimization',
+        title: 'Swiggy/Zomato Delivery Allocation',
+        description: 'During a lunch or dinner rush, hundreds of food orders are placed at once, each needing to be assigned to an available delivery partner. Your task is to design an allocation algorithm that considers delivery-partner location and availability, current workload (orders already assigned), restaurant location, and estimated delivery time. Address how the system avoids overloading a single delivery partner while also minimizing overall delivery time across all orders. Discuss what happens when no partner is available nearby — does the order wait, or expand the search radius? The design should balance speed, fairness, and partner efficiency at scale.',
+        max_teams: 2
     },
 
-    // --- 11. Smart Transit & Campus Commute ---
+    // --- 11. Flash Sales & High-Concurrency Inventory ---
     {
         statement_code: 'PS-11',
-        domain: 'Smart Transit & Campus Commute',
-        title: 'The Journey Before the Campus',
-        description: 'Hi, I’m Meera. I’m a day scholar, and every morning I travel from Madurai to Krishnankoil to reach my college. My first class starts at 9:00 AM, so getting to college on time is something I have to plan for every single day. I depend on public buses for my journey. Usually, I know which bus I need to take and roughly when I should reach the bus stop. But one morning, things didn\'t go as planned. I reached my usual bus stop and waited for my bus. Ten minutes passed. Then twenty minutes passed. More students and passengers started gathering around me. I didn\'t know whether my bus was delayed, had already passed, or whether another bus was coming. When the bus finally arrived, it was already crowded. I somehow managed to get in, but then we got stuck in heavy traffic. I kept looking at the time: 7:15 AM. My first class was getting closer, but I still didn\'t know when I would reach Krishnankoil. I started wondering, Should I continue on this bus? Should I get down and take another one? Is there a faster route? Will another bus even have space? The frustrating part was that I had no reliable way to make that decision. The buses were running. The routes and schedules existed. The drivers and transport operators were doing their jobs. But when something unexpected happened—a delay, traffic, overcrowding or a breakdown—I had very little information about what was actually happening. And I know I\'m not the only one. Every morning, students travel from different parts of the city towards the same campus. A problem on one route can affect dozens of students. A crowded bus can leave people behind. A traffic disruption can make hundreds of students late. We often know there is a problem only after we are already experiencing it. I started wondering what would happen if the transportation system could understand what was happening before I reached the bus stop. What if I could know that my bus was delayed before leaving home? What if the system could predict that a particular route was becoming overcrowded? What if it could suggest another bus or route before I was already late? What if the college could know that hundreds of students were likely to arrive late and prepare for it? I don\'t think we need just another app that shows where a bus is. I want a system that understands my journey. From the moment I leave home in Madurai, through my public-transport journey, to the moment I reach Krishnankoil and walk into my 9:00 AM class. If you were given the chance to redesign the journey for students like me, how would you make public transportation more predictable, connected and responsive? What would you build?',
-        max_teams: 3
+        domain: 'Flash Sales & Atomic Inventory Control',
+        title: 'Amazon Flash Sale – The Last 100 Phones',
+        description: 'During a flash sale, a limited stock of a popular phone (say, 100 units) faces demand from thousands of users clicking "Buy Now" within seconds. Your task is to design a system that maintains accurate inventory count and prevents overselling despite this massive concurrent demand. Explore techniques like atomic decrement operations, request queuing, and caching of "sold out" status to reduce database load. Discuss how the system fairly handles requests that arrive at nearly the same instant. The design should guarantee that exactly the available stock — no more, no less — is sold.',
+        max_teams: 2
     },
 
-    // --- 12. Campus Dining & Crowd Management ---
+    // --- 12. Fintech & Transaction Lifecycle ---
     {
         statement_code: 'PS-12',
-        domain: 'Campus Dining & Crowd Management',
-        title: 'The Queue That Keeps Growing',
-        description: 'Hi, I’m Arjun and I usually have only about 50 minutes for lunch between my classes. One afternoon, I reached the campus canteen at 12:30 PM. The moment I got there, I saw a huge crowd. One counter had a long queue stretching across the hall, while another counter had hardly anyone waiting. I joined the shorter looking queue, but it barely moved. Students kept arriving. Some were checking the time because their next class was about to start. Others were leaving the queue because they couldn\'t afford to wait any longer. Meanwhile, the kitchen staff were trying to serve everyone, but they couldn\'t clearly see where the demand was building up or which items were suddenly becoming popular. What surprised me was that the problem wasn\'t really the number of students. It was that nobody had a clear picture of what was happening across the canteen at that moment. The canteen has counters, staff, menus, payment systems and historical information about daily demand. But when hundreds of students arrive at the same time, the situation changes minute by minute. By the time staff realise that one counter is overloaded, the queue has already become a problem—and for students, a long queue isn\'t just an inconvenience. It can mean skipping lunch, missing a class or spending more money elsewhere. What if the system could understand how many people were arriving, where queues were forming, what counters were busy and how demand was changing? What if it could help students choose better options while helping the canteen adjust before the crowd becomes unmanageable? If you had to redesign the campus dining experience, how would you make the system understand demand and respond before a queue becomes a problem? What would you build?',
-        max_teams: 3
+        domain: 'Fintech & Idempotent Transaction Processing',
+        title: 'UPI Payment Storm – Everyone Pays at Once',
+        description: 'During a major sale event or festival, thousands of UPI payments are initiated simultaneously across the country, and the system must process each reliably. Your task is to model the transaction lifecycle — initiation, processing, success/failure, and status confirmation — under this heavy concurrent load. Address how the system handles duplicate payment requests (e.g., a user tapping "Pay" twice) and network-related retries without double-charging. Discuss how eventual consistency is managed when a payment\'s final status isn\'t known immediately. The design should ensure that every transaction ends in one, and only one, definitive state.',
+        max_teams: 2
     },
 
-    // --- 13. Campus Space & Resource Optimization ---
+    // --- 13. Cloud Storage & File Synchronization ---
     {
         statement_code: 'PS-13',
-        domain: 'Campus Space & Resource Optimization',
-        title: 'The Empty Room',
-        description: 'Hi, I’m Karthik and my team has a project submission tomorrow. We need a quiet place to work, so we decide to find an available classroom after our regular classes finish. We checked block. Nothing. We check another. Every room appears to be occupied or reserved. After walking around for almost twenty minutes, we finally find a classroom that looks empty. But there is a notice on the door saying the room has been reserved. So we leave. Later that evening, we discover something frustrating. That room was never actually being used and it wasn\'t the only one. Across campus, classrooms, seminar halls, meeting rooms and laboratories can remain unused for hours while students and faculty struggle to find available space. The campus knows which rooms exist and which rooms are scheduled. But a schedule doesn\'t always represent what is actually happening right now. A room may be booked but unused. Another may suddenly be needed by a student team. A faculty member may finish a session early. An event may be cancelled. The result is a strange situation: There may be empty spaces everywhere, but nobody knows where they are. What if the campus could understand how spaces were actually being used? What if students could find suitable available spaces without revealing unnecessary personal information? What if administrators could identify underused rooms and make better decisions about campus resources? If you had to redesign the way people discover and use campus spaces, how would you make the system understand real time availability and connect the right people with the right space? What would you build?',
-        max_teams: 3
+        domain: 'Cloud Synchronization & Conflict Resolution',
+        title: 'Google Drive – Same File, Multiple Devices',
+        description: 'A user edits a document on their laptop while the same file is also open or being accessed on their phone or another device. Your task is to design a synchronization system that keeps the file consistent across all devices without losing any changes. Explore how versioning tracks changes over time, how conflicts are detected when two edits happen close together, and what resolution strategy is used (e.g., last-write-wins, merge, or manual conflict resolution). Discuss the role of caching for offline access and how changes are reconciled once the device reconnects. The design should ensure no silent data loss across devices.',
+        max_teams: 2
     },
 
-    // --- 14. Campus Administration & Service Routing ---
+    // --- 14. Presence Systems & Real-Time Messaging ---
     {
         statement_code: 'PS-14',
-        domain: 'Campus Administration & Service Routing',
-        title: 'The Appointment That Took All Morning',
-        description: 'Hi, I’m Arjun. I had to visit the campus administration office one morning to get a simple document processed. I thought it would take 10 or 15 minutes. I reached the office around 10:00 AM and found a long queue outside. I wasn\'t sure whether I needed to take a token, which counter I should go to, or whether the person handling my request was even available that day. I asked someone nearby, and they pointed me towards one counter. After waiting for some time, I was told that my request had to be handled somewhere else. So I moved to another counter. Another queue… Another wait…!! By the time I reached the right person, almost an hour had passed. What made it frustrating was that the office wasn\'t necessarily overloaded everywhere. One counter had a long queue, while another had very few people. Some students were waiting for services that could have been completed much faster if they had known where to go. The campus already has offices, staff, counters, notice boards and online information. But when a student actually needs a service, the information is often scattered across different places. Students don\'t always know which office handles their request, what documents they need, whether the concerned staff member is available, or how long they might have to wait. And the staff face a different problem. They may not know how many students are coming, which services are creating the largest queues, or where additional support is needed until the crowd has already formed. A simple request can therefore turn into an entire morning of waiting, walking between offices and asking for directions. We need to rethink how students access campus services. What if a student could simply explain what they need and be guided to the right office, counter or staff member? What if the system could show current waiting times, available service slots and required documents before the student arrives? What if appointments and walk-ins could be coordinated based on actual demand, while helping staff understand where queues are building? What if a student could complete simple requests digitally without having to stand in a queue at all? A better system could save students hours while helping campus offices manage their workload more effectively. If you had to redesign the way students access campus services, how would you make the experience simpler, more predictable and less dependent on standing in the wrong queue? What would you build?',
-        max_teams: 3
+        domain: 'Real-Time Presence & Heartbeat Management',
+        title: 'WhatsApp Last Seen – Who Is Actually Online?',
+        description: "At any given moment, millions of users are connecting, disconnecting, and reconnecting to WhatsApp's servers, yet the app must accurately show each contact's \"online\" or \"last seen\" status. Your task is to design a presence-management system that tracks this efficiently at scale. Explore how periodic heartbeat signals confirm a user is still connected, how session state is maintained, and how disconnections (including sudden ones, like a phone dying) are detected without excessive delay. Discuss how this data is pushed to relevant contacts in real time without polling constantly. The design should minimize server load while keeping presence information reasonably accurate.",
+        max_teams: 2
     },
 
-    // --- 15. Campus Peer Logistics & Community Network ---
+    // --- 15. Ephemeral Media & TTL Expiry ---
     {
         statement_code: 'PS-15',
-        domain: 'Campus Peer Logistics & Community Network',
-        title: 'The Connection Point',
-        description: 'Hi, I’m Aman. It was around 10:30 in the morning. I was sitting in the library, going through my presentation one last time. PPT was ready. Notes were ready. Everything was sorted. I had about 40 minutes left. I packed my things, got up, and just before leaving, I checked my bag one more time. And that’s when I realised… The file wasn’t there. I remembered leaving it on my table in the hostel. I looked at the time. Going back, finding it, and coming all the way to the academic block would take almost the entire time I had. So I just stood there thinking… Now what? I opened my phone and started scrolling through my contacts. I could call a friend. But what if they weren\'t in the hostel? I could ask in a group. But what if nobody was coming this side? And then I thought… There are so many students moving around campus right now. Someone must already be coming from the hostel towards the academic block. I just needed to find that one person and that\'s when a simple thought became a bigger question: How do you ask a stranger for help without having to completely trust a stranger? How do you know who is genuine? How do you make sure the right item reaches the right person? And how do you do all of this without sharing more personal information than necessary? That small moment in the library made us look at something that happens every day across a campus. People are constantly moving. Things are constantly being forgotten, needed, picked up and carried. Can we make those two movements meet safely and intelligently….? What would you build?',
-        max_teams: 3
+        domain: 'Ephemeral Storage & TTL Lifecycle Expiry',
+        title: 'Instagram Stories – 24-Hour Disappearing Content',
+        description: 'A story posted by a user must automatically become inaccessible exactly 24 hours after posting, even though it may have received millions of views in that window. Your task is to design the underlying expiry mechanism — deciding whether deletion happens via a scheduled job, lazy check-on-access, or TTL-based storage expiry. Address how media (images/videos) is stored and cached efficiently given its temporary nature, and how view counts are tracked accurately under high concurrent viewing. Discuss trade-offs between immediate deletion (compute-heavy) and lazy expiry (storage-heavy). The design should reliably enforce the 24-hour rule at scale.',
+        max_teams: 2
     },
 
-    // --- 16. Student Productivity & Academic Life ---
+    // --- 16. Audio Streaming & Progressive Buffering ---
     {
         statement_code: 'PS-16',
-        domain: 'Student Productivity & Academic Life',
-        title: 'Everything I Know Is Somewhere',
-        description: 'Hi, I’m Nikhil. Every morning, before I even leave my room, I have to figure out what my day looks like. My classes are in one place. My assignments are on another platform. Faculty announcements arrive through email or WhatsApp. My project team has its own group. Club activities come through another channel. Workshops and events are usually somewhere else. None of these things are particularly difficult to manage on their own. The problem is that I have to remember all of them at the same time. One Monday morning, I check my timetable and see that my first class starts at 9:00 AM. I remember that I have a project meeting in the evening, but I don\'t remember exactly when. Somewhere in my messages, my teammate had mentioned a change. I also know that an assignment is due soon, but I have to search through the learning portal to find the exact deadline. I leave for class thinking I have everything under control. During the day, things keep changing. A faculty member sends a new announcement. A meeting gets moved. My project team needs something from me. An assignment deadline gets closer. A workshop I registered for is happening that evening. None of these things are impossible to handle. But I am constantly switching between systems, messages, calendars and portals just to understand what I should be doing next. Sometimes I miss something important. Sometimes I remember a deadline only when it becomes urgent. Sometimes I spend ten minutes searching for information that I had already received somewhere and sometimes I don\'t even realise that two things on my schedule are going to conflict until it\'s too late. The college already gives me most of the information I need. The problem isn\'t a lack of information. There is almost too much of it. My timetable knows when I have class. My learning platform knows about assignments. My calendar knows about events. My messages contain conversations. My project team knows what needs to be done. But none of these systems really understand my day as a whole. They tell me what exists. They don\'t necessarily help me understand what matters right now. And every student is different. One student may have three assignments and no club activities. Another may spend the evening working on a project. Someone else may be travelling from home and have limited time on campus. Giving everyone the same notifications and the same information doesn\'t necessarily help everyone equally. What if we rethink how students interact with everything happening around them? What if a student could bring together the information that matters to them and make sense of it in one place? What if the system could understand that an assignment is due tomorrow, a project meeting was moved, and the student has only one free hour available today? What if it could help the student prioritise without making decisions for them? What if it could notice conflicts before they happen, surface important information at the right moment, and adapt to the way each student actually works? But if such a system understands a student\'s schedule, activities, documents, preferences and conversations, how much should it know? What information should stay private? Who should have access to it? Should it simply respond when the student asks, or should it proactively help? And most importantly, how can technology support a student\'s decisions without taking control of them? If you were asked to redesign the way a student manages their academic, personal and campus life, how would you turn scattered information into something genuinely useful, personalised and trustworthy? What would you build?',
-        max_teams: 3
+        domain: 'Audio Streaming & Progressive Buffering',
+        title: 'Spotify – Why Does the Song Start So Fast?',
+        description: 'When a user taps play on a song, audio begins almost instantly, even though the complete audio file may be several megabytes and hasn\'t fully downloaded yet. Your task is to design a simplified streaming system that explains this near-instant playback. Explore how audio is broken into small chunks that are downloaded and buffered progressively, how playback starts once enough of the initial buffer is ready, and how caching (locally or via CDN) speeds up subsequent plays. Address how the system adapts to changing network conditions (adaptive bitrate) to avoid buffering interruptions. The design should demonstrate smooth playback start and continuity despite incomplete downloads.',
+        max_teams: 2
     },
 
-    // --- 17. Student Services & University Navigation ---
+    // --- 17. Graph Algorithms & Real-Time Routing ---
     {
         statement_code: 'PS-17',
-        domain: 'Student Services & University Navigation',
-        title: 'The Answer Was Somewhere',
-        description: 'Hi, I’m Ananya. Yesterday, I lost my college ID card. I realised it when I was about to enter the library. I checked my bag, went back to the places I had visited, and asked a few friends, but I couldn\'t find it. I knew I had to report it and get a replacement. But I didn\'t know where to start. Should I go to security? Should I inform my department? Do I need to submit a complaint? Is there a form? Do I need to pay for a replacement? Can I get a temporary ID until I receive the new one? I opened the college website and started searching. I found some information about student services, but nothing clearly explained what I needed to do. I found another document, but I wasn\'t sure whether the information was still current. So I asked a friend. They told me to check with the security office. Security asked me to contact the administration office. The administration office told me I needed to submit a form. I didn\'t have the form. I had to go searching again. The process itself probably wasn\'t complicated. Finding the process was—and losing an ID card is only one situation. A student might lose an important document, need a certificate, report a hostel issue, request permission for an event, find a particular office, ask about a campus service, report a maintenance problem, or simply need to know who can help with something. In most cases, the university already has the information. It may exist in a website, PDF, circular, handbook, student portal, notice board, department office or with a particular staff member. But from a student\'s point of view, these feel like different doors to the same university. The student has to know which door to open first and sometimes, even after finding the right information, there are more questions. Which form do I need? What documents should I carry? Where do I submit it? Is there a deadline? Do I need approval from someone else? What happens after I submit it? The problem becomes even harder when information changes or depends on the student\'s situation. A process for a hostel resident may be different from that of a day scholar. A first year student may follow a different procedure from a final year student. Some information may be public, while other information should only be available to authorised students or staff. The university may have all the answers, but the student shouldn\'t have to understand how the entire university is organised just to find one. We need to rethink how students navigate information, processes and services across a campus. What if a student could simply explain what happened and what they are trying to accomplish, instead of first figuring out which department handles it? What if they could be guided through the correct process, understand the required documents, find the right office or person, and know what happens next? What if information from different campus systems could come together in a way that is clear, current and relevant to that particular student? and when the information isn\'t clear, what if the system could recognise that instead of giving a confident but incorrect answer and connect the student to the right person? If you had to redesign the way a student finds help and navigates university processes, how would you make it easier to go from “I have a problem” to “I know exactly what to do next”? What would you build?',
-        max_teams: 3
+        domain: 'Graph Routing & Dynamic Pathfinding',
+        title: 'Google Maps – Finding the Fastest Route',
+        description: "A user requests directions from point A to B, but traffic conditions along possible routes are constantly changing as thousands of other users' location data streams in. Your task is to build a simplified routing system that selects the fastest path using graph-based algorithms (e.g., Dijkstra's or A*) over a road network. Explore how the system incorporates real-time traffic updates to re-weight edges (roads) dynamically, and how caching of frequently-requested routes reduces recomputation. Discuss how the route is recalculated if conditions change mid-journey. The design should balance accuracy of real-time data against computation speed.",
+        max_teams: 2
     },
 
-    // --- 18. Talent Discovery & Peer Collaboration ---
+    // --- 18. Search Engines & Distributed Indexing ---
     {
         statement_code: 'PS-18',
-        domain: 'Talent Discovery & Peer Collaboration',
-        title: 'The Missing Piece',
-        description: 'Hi, I’m Arjun. A few weeks ago, my friends and I came up with an idea for our semester project. We were excited about it because we thought it could solve a problem we had seen on campus. We divided the initial work between us and started building. For the first few days, everything went well. Then we reached a part of the project that none of us had worked with before. We tried learning it ourselves. We watched tutorials. We searched documentation. We asked a few friends. We made some progress, but it was taking much longer than expected. We knew there were students on campus who had already worked with the technology we needed. We had seen their projects during hackathons, workshops and exhibitions. But we didn\'t know who they were or how to reach them. We started asking around. One person gave us a name. Another suggested someone from a different department. Someone else mentioned a senior who had done something similar last year. We contacted a few people, but some were busy, some weren\'t interested, and some had completely different areas of experience. Meanwhile, our project deadline was getting closer. What frustrated us most was that the campus wasn\'t lacking people who could help. The knowledge, experience and skills we needed were probably already somewhere around us. We simply couldn\'t discover them at the moment we needed them. And we realised this wasn\'t only happening to us. Students looking for project members often depend on friends they already know. Students searching for someone with a particular skill may post in a group and hope the right person sees it. Someone willing to help may never know that another student is looking for exactly that kind of experience. Even when two people do find each other, there are other questions. Do they actually have the experience they claim? Are they available? Are they interested in the same kind of work? Are they looking for a teammate, a mentor, or simply someone who can answer one question? The campus had the people. The connections just weren\'t obvious. We started wondering what would happen if students could discover opportunities and people beyond the circles they already knew. What if the right connection could happen because of a shared interest, experience, project or goal rather than simply because two students happened to know the same person? What if the experience could remain useful without turning every student\'s personal information into something publicly searchable? And what if there were a way to build trust around experience without relying entirely on what someone claims about themselves? There may be thousands of students on a campus, each carrying different skills, experiences, interests and ideas. The challenge is understanding how those pieces could come together when they are needed. If you were asked to rethink how students discover and connect with the opportunities, knowledge and people already around them, what would you change? What would you build?',
-        max_teams: 3
+        domain: 'Search Engines & Inverted Indexing',
+        title: 'Amazon Search – Finding a Product in Milliseconds',
+        description: 'A user searches for a product among hundreds of millions of listings, yet relevant results appear within milliseconds. Your task is to build a simplified search system that supports fast keyword matching across a massive catalog. Explore how an inverted index enables quick lookups instead of scanning every product, how filters (price, brand, rating) narrow results efficiently, and how relevance ranking scores and orders matching products. Discuss how the index is kept up to date as new products are added or prices change. The design should demonstrate the trade-off between index freshness and query speed.',
+        max_teams: 2
     },
 
-    // --- 19. Indoor Wayfinding & Campus Navigation ---
+    // --- 19. Feed Ranking & Personalization ---
     {
         statement_code: 'PS-19',
-        domain: 'Indoor Wayfinding & Campus Navigation',
-        title: 'The Wrong Turn',
-        description: 'Hi, I’m Meera. It was my first week on campus, and I had an important induction programme at 10:00 AM. The hall was in a building I had never visited before. I checked the timetable. It gave me the building name and room number, so I thought finding it would be easy. I started walking. I reached one building that looked similar to the location shown on the map, but I wasn\'t sure if I was in the right place. I asked a student nearby, and they pointed me towards another block. I followed the direction. After a few minutes, I realised I had taken the wrong turn. I checked the map again. It showed where I was, but it didn\'t really help me understand which entrance I should use, which floor I needed, or whether I was actually heading towards the correct room. I asked another person. They gave me a different direction. By the time I finally reached the hall, I was already worried about being late. Later, I realised that the problem wasn\'t simply that I couldn\'t find the building. The campus had maps, signboards and people who knew the way. I just didn\'t have the right information at the right moment. A campus can change throughout the day. A building may have multiple entrances. A particular pathway may be closed. A room may be temporarily shifted. A new student may not know the difference between two similar looking blocks. A visitor may not understand campus abbreviations or building names that regular students use every day. Even a normal map may tell someone where a place is, without helping them understand how to actually get there from where they are standing. And not everyone navigates in the same way. Someone carrying equipment may need a different route. Someone in a hurry may prefer the shortest path. Someone unfamiliar with the campus may need clearer landmarks rather than just a line on a map. We need to rethink what campus navigation means. What if a student could simply say where they need to go and receive directions based on their current situation? What if the system could understand entrances, floors, landmarks, temporary closures and changing campus conditions? What if it could recognise when someone has taken a wrong turn and help them recover instead of making them start the journey again? What if the same system could work for students, faculty, visitors and emergency responders while avoiding unnecessary collection or sharing of a person\'s location? If you had to redesign the way people find their way around a large and constantly changing campus, how would you make navigation understand not just where a place is, but what the person actually needs to reach it? What would you build?',
-        max_teams: 3
+        domain: 'Feed Ranking & Personalized Algorithms',
+        title: 'LinkedIn Feed – What Should You See First?',
+        description: "Two different users viewing LinkedIn at the same time see completely different sets of posts in a different order, personalized to each of them. Your task is to design a simplified feed-ranking system that decides what content appears and in what order. Explore how factors like post recency, engagement (likes/comments), the user's relationship with the poster, and topical relevance are combined into a ranking score. Discuss how the system balances fresh content against highly engaging older content, and how it avoids showing the same post repeatedly. The design should produce a personalized, coherent feed ordering for each user.",
+        max_teams: 2
     },
 
-    // --- 20. Campus Services & On-Demand Printing ---
+    // --- 20. High-Throughput Ingestion & Autosave ---
     {
         statement_code: 'PS-20',
-        domain: 'Campus Services & On-Demand Printing',
-        title: 'Everything Was Ready',
-        description: 'Hi, I’m Varshitha. Our project review was the next morning and my team had finally finished the report after working on it for almost a week. We had the PPT ready, the report was completed and our project files were on my laptop. The only thing left was to get the report printed and submit the required copies… I thought, This will take just five minutes…!! I went to the Xerox centre around 4:30 PM. There were already quite a few students waiting. Some were printing assignments, some were taking photocopies, and others were getting documents scanned. When my turn came, I sent my report to the operator. Then I realised that our guide had asked us to print a few pages in colour and the remaining pages in black and white. The colour printer was already busy. I waited. After some time, the operator asked me to resend the file because the previous file wasn\'t opening properly. I sent it again. Meanwhile, more students joined the queue. I kept checking the time because the submission counter would close at 5:00 PM. Everything I needed was already ready. My report was ready. My team was ready. I was ready. But getting those final copies took much longer than I expected. I finally got the documents and rushed to submit them. On my way back, I started thinking about how often this happens on campus. Students regularly need to print project reports, assignments, records, certificates, application forms and other documents. During project reviews, examinations and submission days, the demand suddenly becomes much higher. The campus may have multiple Xerox and printing centres but I usually don\'t know which one has the shortest queue, which one has colour printing available, whether the printer is working or how long my request will take. The operators have another problem. They may receive many files from different students through different channels, while also handling printing options, payments and requests. At the same time, students are sharing academic and personal documents just to get something printed. The technology to print a document already exists. The difficult part is everything around it. So the question is: How could we rethink this everyday experience so that a student doesn\'t have to waste valuable time just to complete the final step of getting something printed? How could the process become faster, more predictable and secure for students while also making things easier for the people running these centres? What would you build?',
-        max_teams: 3
+        domain: 'High-Throughput Ingestion & Queue Processing',
+        title: 'Online Exam Portal – 10,000 Students Submit at 11:59 PM',
+        description: "As the deadline approaches, thousands of students rush to submit their answers within the same final minute, putting extreme write pressure on the system. Your task is to design a submission system that reliably handles this concurrent write burst without losing or corrupting any student's data. Explore how autosave reduces last-minute data loss risk, how request queues smooth the submission spike, and how duplicate submissions (e.g., a student clicking submit twice) are prevented. Discuss the consistency guarantees needed to ensure every valid submission before the deadline is recorded, even under load. The design should demonstrate zero data loss under peak concurrent writes.",
+        max_teams: 2
     },
 
-    // --- 21. Assistive Tech & Inclusive Communication ---
+    // --- 21. Resumable Uploads & Network Resilience ---
     {
         statement_code: 'PS-21',
-        domain: 'Assistive Tech & Inclusive Communication',
-        title: 'The Message Between Us',
-        description: 'Hi, I’m Navya. A few days ago, I was working on a project with a few friends. One of our teammates wanted to explain an idea to me, so she started communicating with me using signs. I understood some of it, but not everything. I asked her to show me what she meant. She took out her phone, typed something and showed it to me. I replied by typing on my phone and showing it back. We both smiled and continued our discussion. A few minutes later, we needed to clarify something again. This time, instead of continuing the discussion, we went back to typing and showing our phones. It worked but it didn\'t feel like the natural conversation we were trying to have. I started thinking about what would happen if the same situation happened outside our friend group. What if she needed to quickly ask something from a faculty member? What if she had to communicate with someone at an office? What if she was speaking with someone she had never met before? What if there was something important that needed to be understood immediately? In those situations, finding another way to communicate may not always be as simple as taking out a phone and typing. At the same time, expecting every person on campus to already know how to communicate in the same way isn\'t realistic either. Both people may know exactly what they want to say. The difficulty is making that moment of understanding happen naturally. Today, we already carry devices that can see, hear, process information and respond almost instantly. So the question is: How could we make moments like this easier in everyday university life? How could two people understand each other more naturally when they communicate differently? How could it work during a classroom discussion, project meeting, casual conversation or an important interaction at a campus service? And how could it remain simple enough that the technology doesn\'t become another obstacle? If you were given the opportunity to improve this everyday experience, what would you build?',
-        max_teams: 3
-    },
-
-    // --- 22. Health, Nutrition & Wellness ---
-    {
-        statement_code: 'PS-22',
-        domain: 'Health, Nutrition & Wellness',
-        title: 'Between One Meal and Another',
-        description: 'Hi, I\'m Ananya. Some days I have breakfast before leaving home. Some days I don\'t. Sometimes I eat lunch on time, and sometimes I realise at 4 PM that I haven\'t eaten anything since morning. I never really thought much about it because each missed meal seemed like a small thing. Then I started wondering what happens when these small changes become a routine. Most of us don\'t actually keep track of our everyday eating habits. We remember what we ate today, but we don\'t necessarily notice that we\'ve been skipping breakfast several times a week, eating at unusual times or replacing proper meals with quick snacks. People also have different needs and preferences. Some avoid particular foods, some follow a specific diet, and some have been advised by a professional to follow certain eating patterns but the person usually has to figure out all of this themselves. What if a person could simply record their meals when convenient, and over time the system could help them understand patterns they might not notice on their own? What if it could gently point out that something has changed for example, that they have been skipping meals more frequently than usual and encourage them to pay attention? What if their own dietary preferences or requirements could be considered when giving suggestions, instead of giving the same advice to everyone? And what if all of this could happen without requiring the person to manually analyse their own data every day? The goal isn\'t to tell people what to eat. It\'s to help them become more aware of their own routine and make better-informed choices. If you were asked to design a simple way for people to understand their everyday eating patterns and receive personalised, responsible support, what would you build?',
-        max_teams: 3
+        domain: 'Resumable Uploads & Fault Tolerance',
+        title: 'Cloud Drive Upload – 1 GB File on a Slow Network',
+        description: 'A user tries to upload a large 1 GB file over an unstable or slow network connection, and the upload keeps failing partway through, forcing a frustrating restart from zero. Your task is to design a robust upload system that tolerates such interruptions gracefully. Explore how the file is split into chunks that are uploaded and tracked independently, how checksums verify each chunk\'s integrity, and how a resumable upload mechanism picks up from the last successfully uploaded chunk rather than restarting. Discuss the retry strategy for failed chunks and how upload state is persisted across sessions or app restarts. The design should guarantee the file eventually uploads completely and correctly despite an unreliable network.',
+        max_teams: 2
     }
 ];
 
 export async function GET() {
     try {
-        const supabase = await createClient()
+        const supabase = await createAdminClient()
 
         // 1. Ensure Table structure exists
         const { error: testErr } = await supabase.from('problem_statements').select('id').limit(1);

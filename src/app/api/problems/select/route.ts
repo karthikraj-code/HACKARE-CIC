@@ -45,14 +45,14 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Your team has already locked a problem statement. Changes are not permitted.' }, { status: 400 })
         }
 
-        // 3. Verify Problem Statement exists and capacity constraint (max 3 teams)
+        // 3. Verify Problem Statement exists and capacity constraint (max 2 teams)
         const { data: problemData } = await supabase
             .from('problem_statements')
             .select('id, title, max_teams, statement_code')
             .eq('id', problem_id)
             .single()
 
-        const maxTeams = problemData?.max_teams || 3
+        const maxTeams = problemData?.max_teams || 2
 
         const { count: currentCount } = await supabase
             .from('problem_selections')

@@ -241,7 +241,7 @@ export default function OrganizerProblemStatementsPage() {
                         <Lock size={24} />
                     </div>
                     <div>
-                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Full Statements (3/3)</p>
+                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Full Statements (2/2)</p>
                         <p className="text-2xl font-black text-gray-900">{fullStatementsCount} Statements</p>
                     </div>
                 </div>
@@ -294,7 +294,7 @@ export default function OrganizerProblemStatementsPage() {
                         <tbody className="divide-y divide-gray-100">
                             {filteredProblems.map((problem) => {
                                 const currentTeams = problem.current_teams || 0
-                                const maxTeams = problem.max_teams || 3
+                                const maxTeams = problem.max_teams || 2
                                 const assigned = problem.assigned_teams || []
 
                                 return (

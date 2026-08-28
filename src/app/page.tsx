@@ -37,7 +37,7 @@ export default function Home() {
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
             <Lightbulb className="text-amber-500 w-8 h-8 mb-4" />
             <h3 className="font-bold text-lg mb-2 text-gray-900">2. Select Problem</h3>
-            <p className="text-sm text-gray-600">Browse curated problem statements across smart campus, transit, sustainability, and more. Max 3 teams per statement.</p>
+            <p className="text-sm text-gray-600">Browse curated problem statements across smart campus, transit, sustainability, and more. Max 2 teams per statement.</p>
           </div>
 
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">

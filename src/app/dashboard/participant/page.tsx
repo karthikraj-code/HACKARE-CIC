@@ -154,7 +154,7 @@ export default async function ParticipantDashboard() {
                         ) : (
                             <div className="mb-4">
                                 <p className="text-sm text-gray-600">
-                                    Select 1 out of the curated problem statements. Each statement allows up to 3 teams.
+                                    Select 1 out of the curated problem statements. Each statement allows up to 2 teams.
                                 </p>
                             </div>
                         )}
@@ -216,7 +216,7 @@ export default async function ParticipantDashboard() {
                             </div>
                             <h4 className="font-bold text-gray-900 mb-1">Problem Selection</h4>
                             <p className="text-xs text-gray-600 leading-relaxed">
-                                Choose 1 problem statement. Max 3 teams per statement.
+                                Choose 1 problem statement. Max 2 teams per statement.
                             </p>
                         </div>
                         <div className="mt-4 pt-3 border-t border-slate-200">

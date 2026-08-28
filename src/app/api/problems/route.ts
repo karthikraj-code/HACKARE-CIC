@@ -42,7 +42,7 @@ export async function GET() {
         let problemList = dbProblems && dbProblems.length > 0 ? dbProblems : PROBLEM_STATEMENTS_DATA.map((p, idx) => ({
             id: `static-${p.statement_code}`,
             ...p,
-            max_teams: 3
+            max_teams: 2
         }))
 
         // 2. Fetch all current selections
@@ -86,7 +86,7 @@ export async function GET() {
 
         const enrichedProblems = problemList.map((p: any) => {
             const currentTeams = countMap[p.id] || countMap[p.statement_code] || 0
-            const maxTeams = p.max_teams || 3
+            const maxTeams = p.max_teams || 2
             return {
                 ...p,
                 current_teams: currentTeams,
