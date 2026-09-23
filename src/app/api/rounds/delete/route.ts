@@ -1,26 +1,23 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
+import { ensureDbUser } from '@/lib/ensureUser'
 
 export async function DELETE(request: Request) {
     try {
-        const supabase = await createClient()
-        const session = await getServerSession(authOptions);
-    const user = session?.user as any
+        const session = await getServerSession(authOptions)
+        const user = session?.user as any
 
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // Verify Organizer role
-        const { data: userData } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', user.id)
-            .single()
+        const supabase = await createAdminClient()
+        const dbUser = await ensureDbUser(user)
 
-        if (userData?.role !== 'organizer') {
+        const isOrganizer = user.role === 'organizer' || dbUser?.role === 'organizer'
+        if (!isOrganizer) {
             return NextResponse.json({ error: 'Forbidden. Organizers only.' }, { status: 403 })
         }
 
@@ -30,8 +27,7 @@ export async function DELETE(request: Request) {
             return NextResponse.json({ error: 'Round ID is required' }, { status: 400 })
         }
 
-        // Delete the round. Since we used "ON DELETE CASCADE" in the schema, 
-        // all submissions, scores, and quiz questions associated with this round will automatically be deleted too.
+        // Delete the round. With ON DELETE CASCADE, child records are also cleaned up.
         const { error } = await supabase
             .from('rounds')
             .delete()

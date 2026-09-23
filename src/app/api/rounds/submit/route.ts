@@ -53,13 +53,17 @@ export async function POST(request: Request) {
         // 2. Validate round time and mandatory fields
         const { data: round } = await supabase
             .from('rounds')
-            .select('id, name, round_number, end_time, submission_type')
+            .select('id, name, round_number, start_time, end_time, submission_type')
             .eq('id', round_id)
             .single()
 
         if (!round) return NextResponse.json({ error: 'Round not found' }, { status: 404 })
 
         const now = new Date()
+        if (round.start_time && now < new Date(round.start_time)) {
+            return NextResponse.json({ error: 'This round has not opened for submissions yet.' }, { status: 400 })
+        }
+
         const endTime = new Date(round.end_time)
 
         if (now > endTime) {
@@ -80,51 +84,27 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: `${config.fields.ppt.label || 'Presentation link'} is required.` }, { status: 400 })
         }
 
-        // 3. Upsert submission
-        const { data: existingSub } = await supabase
+        // 3. Perform atomic upsert for submission
+        const { data: submissionResult, error: upsertError } = await supabase
             .from('submissions')
-            .select('id')
-            .eq('team_id', membership.team_id)
-            .eq('round_id', round_id)
-            .maybeSingle()
+            .upsert([{
+                team_id: membership.team_id,
+                round_id,
+                text_response,
+                file_url,
+                link,
+                github_url,
+                chatgpt_link_2,
+                submitted_at: new Date().toISOString()
+            }], {
+                onConflict: 'team_id, round_id'
+            })
+            .select()
+            .single()
 
-        let submissionResult;
-
-        if (existingSub) {
-            const { data, error } = await supabase
-                .from('submissions')
-                .update({
-                    text_response,
-                    file_url,
-                    link,
-                    github_url,
-                    chatgpt_link_2,
-                    submitted_at: new Date().toISOString()
-                })
-                .eq('id', existingSub.id)
-                .select()
-                .single()
-
-            if (error) throw error
-            submissionResult = data
-        } else {
-            const { data, error } = await supabase
-                .from('submissions')
-                .insert([{
-                    team_id: membership.team_id,
-                    round_id,
-                    text_response,
-                    file_url,
-                    link,
-                    github_url,
-                    chatgpt_link_2,
-                    submitted_at: new Date().toISOString()
-                }])
-                .select()
-                .single()
-
-            if (error) throw error
-            submissionResult = data
+        if (upsertError) {
+            console.error('Submission upsert error:', upsertError)
+            throw upsertError
         }
 
         return NextResponse.json({ success: true, submission: submissionResult, message: 'Submission recorded successfully!' })

@@ -21,13 +21,7 @@ export default async function ParticipantLayout({
         redirect('/login')
     }
 
-    const { data: userData } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-    const currentRole = userData?.role || user.role || 'participant'
+    const currentRole = user.role || 'participant'
 
     if (currentRole !== 'participant') {
         redirect(`/dashboard/${currentRole}`)
@@ -75,12 +69,12 @@ export default async function ParticipantLayout({
             {/* Main Content Area */}
             <main className="flex-1 overflow-auto">
                 <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between shadow-sm">
-                    <h1 className="text-xl font-semibold text-gray-800">Welcome, {userData?.name || user?.name || 'Participant'}</h1>
+                    <h1 className="text-xl font-semibold text-gray-800">Welcome, {user?.name || 'Participant'}</h1>
                     <div className="flex items-center gap-4">
                         <UserDropdown user={{
-                            name: userData?.name || user?.name,
-                            email: userData?.email || user?.email,
-                            role: userData?.role || 'participant'
+                            name: user?.name,
+                            email: user?.email,
+                            role: user?.role || 'participant'
                         }} />
                     </div>
                 </header>

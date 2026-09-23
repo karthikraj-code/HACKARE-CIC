@@ -89,7 +89,7 @@ export default function OrganizerProblemStatementsPage() {
             if (document.visibilityState === 'visible' && !isModalOpen && !savingProblem && !togglingRelease) {
                 fetchProblems(false)
             }
-        }, 3500)
+        }, 10000)
 
         const handleFocus = () => {
             if (document.visibilityState === 'visible' && !isModalOpen && !savingProblem && !togglingRelease) {

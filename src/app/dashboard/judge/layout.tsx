@@ -20,13 +20,7 @@ export default async function JudgeLayout({
         redirect('/login')
     }
 
-    const { data: userData } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-    const currentRole = userData?.role || user?.role || 'participant'
+    const currentRole = user?.role || 'participant'
 
     if (currentRole !== 'judge') {
         redirect(`/dashboard/${currentRole}`)

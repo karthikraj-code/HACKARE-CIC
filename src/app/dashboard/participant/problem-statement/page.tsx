@@ -41,11 +41,12 @@ export default function ProblemStatementSelectionPage() {
     useEffect(() => {
         fetchData(true)
 
+        // Only poll if statement is not yet locked
         const interval = setInterval(() => {
-            if (document.visibilityState === 'visible' && !submitting) {
+            if (document.visibilityState === 'visible' && !submitting && !userSelection) {
                 fetchData(false)
             }
-        }, 3500)
+        }, 10000)
 
         const handleFocus = () => {
             if (document.visibilityState === 'visible' && !submitting) {
@@ -61,7 +62,7 @@ export default function ProblemStatementSelectionPage() {
             window.removeEventListener('focus', handleFocus)
             document.removeEventListener('visibilitychange', handleFocus)
         }
-    }, [submitting])
+    }, [submitting, userSelection])
 
     const fetchData = async (showLoading = false) => {
         try {

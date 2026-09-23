@@ -11,47 +11,45 @@ export async function GET() {
         const session = await getServerSession(authOptions);
         const user = session?.user as any
 
-        // 0. Fetch problem statements release status
-        const { data: config } = await supabase
-            .from('leaderboard_config')
-            .select('is_problems_released')
-            .eq('id', 1)
-            .single()
+        // 1. Fetch user role and DB user from cache
+        let dbUser: any = null
+        let activeUserId: string | undefined = undefined
+        let userRole = user?.role || 'participant'
 
-        const isProblemsReleased = config?.is_problems_released ?? false
-
-        // Fetch user role
-        let userRole = 'participant'
-        if (user?.id) {
-            const { data: uData } = await supabase
-                .from('users')
-                .select('role')
-                .eq('id', user.id)
-                .single()
-            if (uData?.role) userRole = uData.role
+        if (user?.id || user?.email) {
+            dbUser = await ensureDbUser(user)
+            activeUserId = dbUser?.id || user?.id
+            userRole = user?.role || dbUser?.role || 'participant'
         }
 
         const isPrivileged = userRole === 'organizer' || userRole === 'judge'
+        const userIds = [activeUserId, user?.id].filter(Boolean)
 
-        // 1. Fetch all problem statements from DB
-        const { data: dbProblems, error: psError } = await supabase
-            .from('problem_statements')
-            .select('*')
-            .order('statement_code', { ascending: true })
+        // 2. Fetch config, problem statements, selections, and user's team membership in parallel
+        const [
+            { data: config },
+            { data: dbProblems },
+            { data: selections },
+            userMembershipResult
+        ] = await Promise.all([
+            supabase.from('leaderboard_config').select('is_problems_released').eq('id', 1).single(),
+            supabase.from('problem_statements').select('*').order('statement_code', { ascending: true }),
+            supabase.from('problem_selections').select('problem_id, team_id, teams(team_name)'),
+            userIds.length > 0 
+                ? supabase.from('team_members').select('team_id, teams(*)').in('user_id', userIds).maybeSingle()
+                : Promise.resolve({ data: null })
+        ])
+
+        const isProblemsReleased = config?.is_problems_released ?? false
 
         // If DB table empty or not yet migrated, fallback to static list
-        let problemList = dbProblems && dbProblems.length > 0 ? dbProblems : PROBLEM_STATEMENTS_DATA.map((p, idx) => ({
+        let problemList = dbProblems && dbProblems.length > 0 ? dbProblems : PROBLEM_STATEMENTS_DATA.map((p) => ({
             id: `static-${p.statement_code}`,
             ...p,
             max_teams: 2
         }))
 
-        // 2. Fetch all current selections
-        const { data: selections } = await supabase
-            .from('problem_selections')
-            .select('problem_id, team_id, teams(team_name)')
-
-        // Also check if any team selections exist
+        // Count selections per problem
         const countMap: Record<string, number> = {}
         const teamMap: Record<string, string[]> = {}
 
@@ -65,47 +63,21 @@ export async function GET() {
         let userTeamSelection: any = null
         let userTeam: any = null
         let isLeader = false
-        let dbUser: any = null
-        let activeUserId: string | undefined = undefined
 
-        if (user?.id || user?.email) {
-            dbUser = await ensureDbUser(user)
-            activeUserId = dbUser?.id || user?.id
-            const userIds = [activeUserId, user?.id].filter(Boolean)
+        const membership = userMembershipResult?.data as any
+        if (membership?.team_id) {
+            userTeam = membership.teams
 
-            const { data: membership } = await supabase
-                .from('team_members')
-                .select('team_id, teams(*)')
-                .in('user_id', userIds)
+            const { data: teamSel } = await supabase
+                .from('problem_selections')
+                .select('*, problem_statements(*)')
+                .eq('team_id', membership.team_id)
                 .maybeSingle()
 
-            if (membership?.team_id) {
-                userTeam = membership.teams
+            userTeamSelection = teamSel
 
-                const { data: teamSel } = await supabase
-                    .from('problem_selections')
-                    .select('*, problem_statements(*)')
-                    .eq('team_id', membership.team_id)
-                    .maybeSingle()
-
-                userTeamSelection = teamSel
-            }
-        }
-
-        if (userTeam) {
-            if (userTeam.leader_id === activeUserId || userTeam.leader_id === user?.id) {
-                isLeader = true
-            } else if (user?.email || dbUser?.email) {
-                const userEmail = (dbUser?.email || user.email)?.toLowerCase().trim()
-                const { data: leaderUser } = await supabase
-                    .from('users')
-                    .select('email')
-                    .eq('id', userTeam.leader_id)
-                    .maybeSingle()
-
-                if (leaderUser?.email?.toLowerCase().trim() === userEmail) {
-                    isLeader = true
-                }
+            if (userTeam) {
+                isLeader = userTeam.leader_id === activeUserId || userTeam.leader_id === user?.id
             }
         }
 
@@ -131,6 +103,10 @@ export async function GET() {
                 user_team: userTeam,
                 is_leader: isLeader,
                 user_team_selection: userTeamSelection
+            }, {
+                headers: {
+                    'Cache-Control': 'private, max-age=4, stale-while-revalidate=8'
+                }
             })
         }
 
@@ -141,8 +117,13 @@ export async function GET() {
             user_team: userTeam,
             is_leader: isLeader,
             user_team_selection: userTeamSelection
+        }, {
+            headers: {
+                'Cache-Control': 'private, max-age=4, stale-while-revalidate=8'
+            }
         })
     } catch (error: any) {
+        console.error('API problems error:', error)
         return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
     }
 }

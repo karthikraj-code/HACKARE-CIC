@@ -179,7 +179,7 @@ export default async function ParticipantTeamPage() {
                                             {team.leader_id === member.user_id && (
                                                 <span className="text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-full border border-blue-200">Leader</span>
                                             )}
-                                            {user?.id === member.user_id && (
+                                            {(user?.id === member.user_id || activeUserId === member.user_id) && (
                                                 <span className="text-xs text-blue-600 font-semibold">(You)</span>
                                             )}
                                         </p>
@@ -202,6 +202,7 @@ export default async function ParticipantTeamPage() {
                             <span className="font-mono text-xl font-black tracking-widest text-slate-800 select-all">
                                 {team?.invite_code}
                             </span>
+                            <CopyButton text={team?.invite_code || ''} label="Copy Code" variant="pill" />
                         </div>
                         <p className="text-[11px] text-gray-400">
                             {4 - memberCount} more member{4 - memberCount > 1 ? 's' : ''} can join.

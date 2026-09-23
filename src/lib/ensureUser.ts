@@ -13,40 +13,73 @@ export interface DbUser {
     created_at?: string
 }
 
+// In-memory cache for user records to eliminate repeated DB lookups under high concurrency
+const userCache = new Map<string, { user: DbUser; expiresAt: number }>()
+const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
+function getCachedUser(key: string): DbUser | null {
+    const entry = userCache.get(key)
+    if (!entry) return null
+    if (Date.now() > entry.expiresAt) {
+        userCache.delete(key)
+        return null
+    }
+    return entry.user
+}
+
+function setCachedUser(user: DbUser) {
+    const entry = { user, expiresAt: Date.now() + CACHE_TTL_MS }
+    if (user.id) userCache.set(user.id, entry)
+    if (user.email) userCache.set(user.email.toLowerCase().trim(), entry)
+}
+
 /**
  * Ensures the authenticated user exists in the public.users database table.
- * If not present, creates the user record with the admin client to satisfy foreign key constraints.
+ * Uses in-memory caching to eliminate redundant DB queries on high concurrency.
  */
 export async function ensureDbUser(sessionUser: { id?: string; email?: string; name?: string; role?: string }): Promise<DbUser | null> {
     if (!sessionUser?.id && !sessionUser?.email) {
         return null
     }
 
-    const supabase = await createAdminClient()
     const emailLower = sessionUser.email?.toLowerCase().trim()
+
+    // 0. Check in-memory cache first
+    if (sessionUser.id) {
+        const cached = getCachedUser(sessionUser.id)
+        if (cached) return cached
+    }
+    if (emailLower) {
+        const cached = getCachedUser(emailLower)
+        if (cached) return cached
+    }
+
+    const supabase = await createAdminClient()
 
     // 1. Try finding user by ID
     if (sessionUser.id) {
-        const { data: userById, error: idError } = await supabase
+        const { data: userById } = await supabase
             .from('users')
             .select('*')
             .eq('id', sessionUser.id)
             .maybeSingle()
 
         if (userById) {
+            setCachedUser(userById as DbUser)
             return userById as DbUser
         }
     }
 
     // 2. Try finding user by email
     if (emailLower) {
-        const { data: userByEmail, error: emailError } = await supabase
+        const { data: userByEmail } = await supabase
             .from('users')
             .select('*')
             .eq('email', emailLower)
             .maybeSingle()
 
         if (userByEmail) {
+            setCachedUser(userByEmail as DbUser)
             return userByEmail as DbUser
         }
     }
@@ -78,10 +111,18 @@ export async function ensureDbUser(sessionUser: { id?: string; email?: string; n
                 .select('*')
                 .eq('email', emailLower)
                 .maybeSingle()
-            if (fallbackUser) return fallbackUser as DbUser
+            if (fallbackUser) {
+                setCachedUser(fallbackUser as DbUser)
+                return fallbackUser as DbUser
+            }
         }
         return null
     }
 
+    if (insertedUser) {
+        setCachedUser(insertedUser as DbUser)
+    }
+
     return insertedUser as DbUser
 }
+

@@ -34,11 +34,11 @@ export default async function OrganizerSubmissionDetail({
         { data: score },
         { data: sel }
     ] = await Promise.all([
-        supabase.from('teams').select('*').eq('id', teamId).single(),
-        supabase.from('rounds').select('*').eq('id', roundId).single(),
-        supabase.from('submissions').select('*').eq('team_id', teamId).eq('round_id', roundId).single(),
-        supabase.from('scores').select('*, users(name)').eq('team_id', teamId).eq('round_id', roundId).single(),
-        supabase.from('problem_selections').select('*, problem_statements(*)').eq('team_id', teamId).single()
+        supabase.from('teams').select('*').eq('id', teamId).maybeSingle(),
+        supabase.from('rounds').select('*').eq('id', roundId).maybeSingle(),
+        supabase.from('submissions').select('*').eq('team_id', teamId).eq('round_id', roundId).maybeSingle(),
+        supabase.from('scores').select('*, users(name)').eq('team_id', teamId).eq('round_id', roundId).maybeSingle(),
+        supabase.from('problem_selections').select('*, problem_statements(*)').eq('team_id', teamId).maybeSingle()
     ])
 
     if (!team || !round || !submission) {

@@ -29,7 +29,27 @@ export async function POST(request: Request) {
 
         const trimmedCode = invite_code.trim().toUpperCase()
 
-        // Check if user is already in a team
+        // 1. Try invoking PostgreSQL atomic stored procedure with row-level locks
+        const { data: rpcData, error: rpcError } = await supabase.rpc('join_team_atomic', {
+            p_invite_code: trimmedCode,
+            p_user_id: dbUser.id
+        })
+
+        if (!rpcError && rpcData) {
+            if (rpcData.success) {
+                return NextResponse.json({
+                    success: true,
+                    team_id: rpcData.team_id,
+                    message: rpcData.message || 'Successfully joined team!'
+                })
+            } else {
+                return NextResponse.json({
+                    error: rpcData.error || 'Failed to join team'
+                }, { status: 400 })
+            }
+        }
+
+        // 2. Fallback in case stored procedure is not yet applied in Supabase
         const { data: existingMember } = await supabase
             .from('team_members')
             .select('team_id')
@@ -78,3 +98,4 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
     }
 }
+

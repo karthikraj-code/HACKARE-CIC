@@ -1,24 +1,23 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
+import { ensureDbUser } from '@/lib/ensureUser'
 
 export async function POST(request: Request) {
     try {
-        const supabase = await createClient()
         const session = await getServerSession(authOptions)
         const user = session?.user as any
 
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-        const { data: userData } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', user.id)
-            .single()
+        const supabase = await createAdminClient()
+        const dbUser = await ensureDbUser(user)
+        const activeUserId = dbUser?.id || user.id
 
-        if (userData?.role !== 'judge') {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        const isJudge = user.role === 'judge' || dbUser?.role === 'judge'
+        if (!isJudge) {
+            return NextResponse.json({ error: 'Forbidden: Judge access required' }, { status: 403 })
         }
 
         const { team_id, round_id, score, feedback, criteria_scores } = await request.json()
@@ -32,51 +31,36 @@ export async function POST(request: Request) {
             .from('judge_assignments')
             .select('team_id')
             .eq('team_id', team_id)
-            .eq('judge_id', user.id)
-            .single()
+            .in('judge_id', [activeUserId, user.id].filter(Boolean))
+            .maybeSingle()
 
         if (!assignment) {
             return NextResponse.json({ error: 'You are not assigned to grade this team' }, { status: 403 })
         }
 
-        // 2. Perform Upsert for Score
-        const { data: existingScore } = await supabase
+        // 2. Perform Atomic Upsert for Score
+        const { error: upsertError } = await supabase
             .from('scores')
-            .select('id')
-            .eq('team_id', team_id)
-            .eq('round_id', round_id)
-            .eq('judge_id', user.id)
-            .single()
+            .upsert([{
+                team_id,
+                round_id,
+                judge_id: activeUserId,
+                score: Number(score),
+                feedback: feedback || '',
+                criteria_scores: criteria_scores || {},
+                graded_at: new Date().toISOString()
+            }], {
+                onConflict: 'team_id, round_id, judge_id'
+            })
 
-        if (existingScore) {
-            const { error } = await supabase
-                .from('scores')
-                .update({
-                    score,
-                    feedback,
-                    criteria_scores: criteria_scores || {},
-                    graded_at: new Date().toISOString()
-                })
-                .eq('id', existingScore.id)
-
-            if (error) throw error
-        } else {
-            const { error } = await supabase
-                .from('scores')
-                .insert([{
-                    team_id,
-                    round_id,
-                    judge_id: user.id,
-                    score,
-                    feedback,
-                    criteria_scores: criteria_scores || {}
-                }])
-
-            if (error) throw error
+        if (upsertError) {
+            console.error('Score upsert error:', upsertError)
+            throw upsertError
         }
 
-        return NextResponse.json({ success: true })
+        return NextResponse.json({ success: true, message: 'Score recorded successfully!' })
     } catch (error: any) {
+        console.error('Score submit error:', error)
         return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
     }
 }

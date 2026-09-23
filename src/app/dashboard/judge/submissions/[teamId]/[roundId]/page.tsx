@@ -68,11 +68,11 @@ export default function GradeSubmissionPage() {
                 { data: sc },
                 { data: sel }
             ] = await Promise.all([
-                supabase.from('teams').select('*').eq('id', teamId).single(),
-                supabase.from('rounds').select('*').eq('id', roundId).single(),
-                supabase.from('submissions').select('*').eq('team_id', teamId).eq('round_id', roundId).single(),
-                supabase.from('scores').select('*').eq('team_id', teamId).eq('round_id', roundId).eq('judge_id', user.id).single(),
-                supabase.from('problem_selections').select('*, problem_statements(*)').eq('team_id', teamId).single()
+                supabase.from('teams').select('*').eq('id', teamId).maybeSingle(),
+                supabase.from('rounds').select('*').eq('id', roundId).maybeSingle(),
+                supabase.from('submissions').select('*').eq('team_id', teamId).eq('round_id', roundId).maybeSingle(),
+                supabase.from('scores').select('*').eq('team_id', teamId).eq('round_id', roundId).eq('judge_id', user.id).maybeSingle(),
+                supabase.from('problem_selections').select('*, problem_statements(*)').eq('team_id', teamId).maybeSingle()
             ])
 
             setTeam(t)

@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Trophy, ArrowLeft, Lock } from 'lucide-react'
 import DashboardRealtimeListener from '@/components/DashboardRealtimeListener'
 
-export const revalidate = 0 // Opt out of static rendering
+export const revalidate = 10 // Cache page for 10s across all concurrent visitors to prevent DB thundering herd
 
 export default async function PublicLeaderboardPage() {
     const supabase = await createClient()
@@ -13,14 +13,14 @@ export default async function PublicLeaderboardPage() {
         .from('leaderboard_config')
         .select('is_released')
         .eq('id', 1)
-        .single()
+        .maybeSingle()
 
     const isReleased = config?.is_released
 
     if (!isReleased) {
         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8 text-center">
-                <DashboardRealtimeListener intervalMs={3000} />
+                <DashboardRealtimeListener />
                 <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
                     <Lock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                     <h1 className="text-2xl font-bold text-gray-900 mb-2">Results Hidden</h1>
@@ -35,22 +35,40 @@ export default async function PublicLeaderboardPage() {
         )
     }
 
-    // 2. Load leaderboard data
-    const { data: teams } = await supabase.from('teams').select('id, team_name')
-    const { data: scores } = await supabase.from('scores').select('team_id, score')
+    // 2. Load pre-aggregated leaderboard data via RPC with fallback
+    let leaderboard: any[] = []
 
-    const leaderboard = teams?.map(team => {
-        const teamScores = scores?.filter(s => s.team_id === team.id) || []
-        return {
-            ...team,
-            totalScore: teamScores.reduce((sum, s) => sum + s.score, 0),
-            roundsGraded: teamScores.length
-        }
-    }).sort((a, b) => b.totalScore - a.totalScore) || []
+    const { data: rpcLeaderboard, error: rpcError } = await supabase.rpc('get_leaderboard_scores')
+
+    if (!rpcError && rpcLeaderboard) {
+        leaderboard = rpcLeaderboard.map((item: any) => ({
+            id: item.team_id,
+            team_name: item.team_name,
+            totalScore: Number(item.total_score) || 0,
+            roundsGraded: Number(item.rounds_graded) || 0
+        }))
+    } else {
+        const [
+            { data: teams },
+            { data: scores }
+        ] = await Promise.all([
+            supabase.from('teams').select('id, team_name'),
+            supabase.from('scores').select('team_id, score')
+        ])
+
+        leaderboard = teams?.map(team => {
+            const teamScores = scores?.filter(s => s.team_id === team.id) || []
+            return {
+                ...team,
+                totalScore: teamScores.reduce((sum, s) => sum + s.score, 0),
+                roundsGraded: teamScores.length
+            }
+        }).sort((a, b) => b.totalScore - a.totalScore) || []
+    }
 
     return (
         <div className="min-h-screen bg-background py-16 px-4">
-            <DashboardRealtimeListener intervalMs={3500} />
+            <DashboardRealtimeListener />
             <div className="max-w-4xl mx-auto space-y-8">
 
                 <div className="mb-4">

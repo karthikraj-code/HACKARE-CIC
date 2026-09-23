@@ -327,7 +327,7 @@ export default function RoundSubmissionPage() {
                                             required={fields.text.required}
                                             rows={5}
                                             onChange={e => setFormData({ ...formData, text_response: e.target.value })}
-                                            disabled={isClosed}
+                                            disabled={isClosed || isUpcoming}
                                             placeholder={fields.text.placeholder || 'Describe your approach, system architecture, methodology, and implementation highlights...'}
                                             className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm font-medium disabled:bg-gray-100 leading-relaxed"
                                         />
@@ -347,7 +347,7 @@ export default function RoundSubmissionPage() {
                                             value={formData.file_url}
                                             required={fields.live_demo.required}
                                             onChange={e => setFormData({ ...formData, file_url: e.target.value })}
-                                            disabled={isClosed}
+                                            disabled={isClosed || isUpcoming}
                                             placeholder={fields.live_demo.placeholder || 'https://your-app.vercel.app or Loom / YouTube video URL'}
                                             className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600 text-sm font-medium disabled:bg-gray-100"
                                         />
@@ -370,7 +370,7 @@ export default function RoundSubmissionPage() {
                                             value={formData.github_url}
                                             required={fields.github.required}
                                             onChange={e => setFormData({ ...formData, github_url: e.target.value })}
-                                            disabled={isClosed}
+                                            disabled={isClosed || isUpcoming}
                                             placeholder={fields.github.placeholder || 'https://github.com/your-team/your-repo'}
                                             className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm font-medium disabled:bg-gray-100"
                                         />
@@ -393,7 +393,7 @@ export default function RoundSubmissionPage() {
                                             value={formData.link}
                                             required={fields.ppt.required}
                                             onChange={e => setFormData({ ...formData, link: e.target.value })}
-                                            disabled={isClosed}
+                                            disabled={isClosed || isUpcoming}
                                             placeholder={fields.ppt.placeholder || 'https://docs.google.com/presentation/d/... or Canva / OneDrive'}
                                             className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-sm font-medium disabled:bg-gray-100"
                                         />
@@ -420,11 +420,11 @@ export default function RoundSubmissionPage() {
                                 {/* Submit Button */}
                                 <button
                                     type="submit"
-                                    disabled={isClosed || submitting}
+                                    disabled={isClosed || isUpcoming || submitting}
                                     className="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed shadow-md flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                     <Send size={16} />
-                                    {submitting ? 'Saving Submission...' : isClosed ? 'Deadline Passed' : existingSubmission ? 'Update Submission' : 'Submit Final Work'}
+                                    {submitting ? 'Saving Submission...' : isUpcoming ? 'Round Not Started Yet' : isClosed ? 'Deadline Passed' : existingSubmission ? 'Update Submission' : 'Submit Final Work'}
                                 </button>
                             </form>
                         </div>

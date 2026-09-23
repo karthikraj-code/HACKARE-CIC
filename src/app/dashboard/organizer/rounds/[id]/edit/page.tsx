@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Edit } from 'lucide-react'
@@ -7,13 +7,13 @@ import EditRoundForm from './EditRoundForm'
 export default async function EditRoundPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = await params;
     const roundId = resolvedParams.id
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
 
     const { data: round } = await supabase
         .from('rounds')
         .select('*')
         .eq('id', roundId)
-        .single()
+        .maybeSingle()
 
     if (!round) {
         redirect('/dashboard/organizer/rounds')

@@ -38,7 +38,7 @@ export default function JudgeProblemStatementsPage() {
             if (document.visibilityState === 'visible') {
                 fetchProblems(false)
             }
-        }, 3500)
+        }, 15000)
 
         const handleFocus = () => {
             if (document.visibilityState === 'visible') {

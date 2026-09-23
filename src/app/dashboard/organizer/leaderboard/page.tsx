@@ -22,7 +22,7 @@ export default function OrganizerLeaderboardPage() {
             if (document.visibilityState === 'visible' && !toggling) {
                 fetchData(false)
             }
-        }, 3500)
+        }, 12000)
 
         const handleFocus = () => {
             if (document.visibilityState === 'visible' && !toggling) {

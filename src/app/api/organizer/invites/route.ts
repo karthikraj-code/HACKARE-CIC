@@ -1,17 +1,19 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
+import { ensureDbUser } from '@/lib/ensureUser'
 
 export async function GET() {
     try {
-        const supabase = await createClient()
-        const session = await getServerSession(authOptions);
-    const user = session?.user as any
+        const supabase = await createAdminClient()
+        const session = await getServerSession(authOptions)
+        const user = session?.user as any
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-        const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
-        if (userData?.role !== 'organizer') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        const dbUser = await ensureDbUser(user)
+        const isOrganizer = user.role === 'organizer' || dbUser?.role === 'organizer'
+        if (!isOrganizer) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
         const { data: organizers, error: orgErr } = await supabase.from('organizer_emails').select('*').order('created_at', { ascending: false })
         if (orgErr) throw orgErr
@@ -27,13 +29,14 @@ export async function GET() {
 
 export async function POST(request: Request) {
     try {
-        const supabase = await createClient()
-        const session = await getServerSession(authOptions);
-    const user = session?.user as any
+        const supabase = await createAdminClient()
+        const session = await getServerSession(authOptions)
+        const user = session?.user as any
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-        const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
-        if (userData?.role !== 'organizer') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        const dbUser = await ensureDbUser(user)
+        const isOrganizer = user.role === 'organizer' || dbUser?.role === 'organizer'
+        if (!isOrganizer) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
         const { email, role } = await request.json()
         if (!email || !role) return NextResponse.json({ error: 'Email and role required' }, { status: 400 })
@@ -51,7 +54,7 @@ export async function POST(request: Request) {
 
         const { data, error } = await supabase
             .from(table)
-            .insert([{ email: lowerEmail, added_by: user.id }])
+            .insert([{ email: lowerEmail, added_by: dbUser?.id || user.id }])
             .select()
             .single()
 
@@ -71,23 +74,25 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
     try {
-        const supabase = await createClient()
-        const session = await getServerSession(authOptions);
-    const user = session?.user as any
+        const supabase = await createAdminClient()
+        const session = await getServerSession(authOptions)
+        const user = session?.user as any
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-        const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single()
-        if (userData?.role !== 'organizer') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        const dbUser = await ensureDbUser(user)
+        const isOrganizer = user.role === 'organizer' || dbUser?.role === 'organizer'
+        if (!isOrganizer) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
         const { email, role } = await request.json()
         if (!email || !role) return NextResponse.json({ error: 'Email and role required' }, { status: 400 })
 
+        const lowerEmail = email.toLowerCase().trim()
         const table = role === 'organizer' ? 'organizer_emails' : 'judge_emails'
-        const { error } = await supabase.from(table).delete().eq('email', email)
+        const { error } = await supabase.from(table).delete().eq('email', lowerEmail)
         if (error) throw error
 
         // Revert them to participant if they exist, to revoke access
-        await supabase.from('users').update({ role: 'participant' }).eq('email', email).eq('role', role)
+        await supabase.from('users').update({ role: 'participant' }).eq('email', lowerEmail).eq('role', role)
 
         return NextResponse.json({ success: true })
     } catch (error: any) {

@@ -1,27 +1,25 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 import { normalizeRubric } from '@/lib/rubricConfig'
+import { ensureDbUser } from '@/lib/ensureUser'
 
 export async function POST(request: Request) {
     try {
-        const supabase = await createClient()
-        const session = await getServerSession(authOptions);
+        const session = await getServerSession(authOptions)
         const user = session?.user as any
 
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { data: userData } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', user.id)
-            .single()
+        const supabase = await createAdminClient()
+        const dbUser = await ensureDbUser(user)
 
-        if (userData?.role !== 'organizer') {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        const isOrganizer = user.role === 'organizer' || dbUser?.role === 'organizer'
+        if (!isOrganizer) {
+            return NextResponse.json({ error: 'Forbidden: Organizer access required' }, { status: 403 })
         }
 
         const {
@@ -63,8 +61,8 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json({ success: true, round: data })
-    } catch (error) {
+    } catch (error: any) {
         console.error(error)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
     }
 }

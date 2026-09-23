@@ -33,54 +33,38 @@ export default async function ParticipantDashboard() {
 
     const userData = dbUser || user
 
-    // 1. Get user's team membership
-    const { data: membership } = await supabase
-        .from('team_members')
-        .select('team_id, teams(*)')
-        .in('user_id', userIds)
-        .maybeSingle()
+    // 1. Concurrently fetch user team membership and competition rounds
+    const [
+        { data: membership },
+        { data: allRounds }
+    ] = await Promise.all([
+        supabase.from('team_members').select('team_id, teams(*)').in('user_id', userIds).maybeSingle(),
+        supabase.from('rounds').select('*').order('round_number', { ascending: true })
+    ])
 
     const team = membership?.teams as any
     const teamId = team?.id
-
-    // 2. Get Team Members count
-    let memberCount = 0
-    if (teamId) {
-        const { count } = await supabase
-            .from('team_members')
-            .select('*', { count: 'exact', head: true })
-            .eq('team_id', teamId)
-        memberCount = count || 0
-    }
-
-    // 3. Get team's selected problem statement
-    let selectedProblem: any = null
-    if (teamId) {
-        const { data: selection } = await supabase
-            .from('problem_selections')
-            .select('*, problem_statements(*)')
-            .eq('team_id', teamId)
-            .maybeSingle()
-        selectedProblem = selection?.problem_statements
-    }
-
-    // 4. Fetch all competition rounds from database dynamically
-    const { data: allRounds } = await supabase
-        .from('rounds')
-        .select('*')
-        .order('round_number', { ascending: true })
-
     const roundsList = allRounds || []
 
-    // 5. Fetch team's actual submissions
+    // 2. Concurrently fetch team-specific data (member count, problem statement, submissions)
+    let memberCount = 0
+    let selectedProblem: any = null
     const submittedRoundIds = new Set<string>()
     const submissionsMap: Record<string, any> = {}
 
     if (teamId) {
-        const { data: submissions } = await supabase
-            .from('submissions')
-            .select('*')
-            .eq('team_id', teamId)
+        const [
+            { count },
+            { data: selection },
+            { data: submissions }
+        ] = await Promise.all([
+            supabase.from('team_members').select('*', { count: 'exact', head: true }).eq('team_id', teamId),
+            supabase.from('problem_selections').select('*, problem_statements(*)').eq('team_id', teamId).maybeSingle(),
+            supabase.from('submissions').select('*').eq('team_id', teamId)
+        ])
+
+        memberCount = count || 0
+        selectedProblem = selection?.problem_statements
 
         submissions?.forEach((s: any) => {
             if (s.round_id) {

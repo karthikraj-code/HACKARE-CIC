@@ -15,6 +15,7 @@ export async function POST(request: Request) {
 
         const supabase = await createAdminClient()
         const dbUser = await ensureDbUser(user)
+        const activeUserId = dbUser?.id || user.id
 
         const { problem_id, team_id } = await request.json()
 
@@ -22,10 +23,30 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing problem_id or team_id' }, { status: 400 })
         }
 
-        // 1. Verify user is the leader of the team
+        // 1. Try invoking PostgreSQL atomic stored procedure with row-level locks
+        const { data: rpcData, error: rpcError } = await supabase.rpc('select_problem_atomic', {
+            p_team_id: team_id,
+            p_problem_id: problem_id,
+            p_user_id: activeUserId
+        })
+
+        if (!rpcError && rpcData) {
+            if (rpcData.success) {
+                return NextResponse.json({
+                    success: true,
+                    message: rpcData.message || 'Problem statement successfully locked!'
+                })
+            } else {
+                return NextResponse.json({
+                    error: rpcData.error || 'Failed to lock problem statement'
+                }, { status: 400 })
+            }
+        }
+
+        // 2. Fallback in case stored procedure is not yet applied in Supabase
         const { data: teamData, error: teamErr } = await supabase
             .from('teams')
-            .select('id, team_name, leader_id')
+            .select('id, team_name, leader_id, selected_problem_id')
             .eq('id', team_id)
             .single()
 
@@ -33,29 +54,19 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Team not found' }, { status: 404 })
         }
 
-        let isLeader = teamData.leader_id === user.id || (dbUser && teamData.leader_id === dbUser.id)
-
-        if (!isLeader && (user.email || dbUser?.email)) {
-            const userEmail = (dbUser?.email || user.email)?.toLowerCase().trim()
-            const { data: leaderUser } = await supabase
-                .from('users')
-                .select('email')
-                .eq('id', teamData.leader_id)
-                .maybeSingle()
-
-            if (leaderUser?.email?.toLowerCase().trim() === userEmail) {
-                isLeader = true
-            }
-        }
-
+        let isLeader = teamData.leader_id === activeUserId || teamData.leader_id === user.id
         if (!isLeader) {
             return NextResponse.json({ error: 'Only the Team Leader can select and lock a problem statement.' }, { status: 403 })
         }
 
-        // 2. Check if the team already has a locked problem statement
+        if (teamData.selected_problem_id) {
+            return NextResponse.json({ error: 'Your team has already locked a problem statement. Changes are not permitted.' }, { status: 400 })
+        }
+
+        // Check if the team already has a selection
         const { data: existingSelection } = await supabase
             .from('problem_selections')
-            .select('id, problem_id')
+            .select('id')
             .eq('team_id', team_id)
             .maybeSingle()
 
@@ -63,7 +74,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Your team has already locked a problem statement. Changes are not permitted.' }, { status: 400 })
         }
 
-        // 3. Verify Problem Statement exists and capacity constraint (max 2 teams)
+        // Verify Problem Statement exists and capacity constraint
         const { data: problemData } = await supabase
             .from('problem_statements')
             .select('id, title, max_teams, statement_code')
@@ -83,7 +94,7 @@ export async function POST(request: Request) {
             }, { status: 400 })
         }
 
-        // 4. Lock the selection
+        // Lock the selection
         const { error: insertErr } = await supabase
             .from('problem_selections')
             .insert([{
@@ -98,7 +109,6 @@ export async function POST(request: Request) {
             }, { status: 400 })
         }
 
-        // Optional update on teams table for convenience
         await supabase
             .from('teams')
             .update({ selected_problem_id: problem_id })
@@ -113,3 +123,4 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
     }
 }
+
