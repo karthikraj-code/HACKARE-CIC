@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import Link from 'next/link'
 import { Trophy, ArrowLeft, Lock } from 'lucide-react'
 import DashboardRealtimeListener from '@/components/DashboardRealtimeListener'
@@ -6,7 +6,7 @@ import DashboardRealtimeListener from '@/components/DashboardRealtimeListener'
 export const revalidate = 10 // Cache page for 10s across all concurrent visitors to prevent DB thundering herd
 
 export default async function PublicLeaderboardPage() {
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
 
     // 1. Check if leaderboard is released
     const { data: config } = await supabase

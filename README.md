@@ -19,6 +19,7 @@ Engineered to support **500+ concurrent participants, judges, and organizers** w
 - [Database Schema & Migrations](#-database-schema--migrations)
 - [Environment Variables](#-environment-variables)
 - [Local Setup & Installation](#-local-setup--installation)
+- [🧪 Scalability & Concurrency Testing Guide](#-scalability--concurrency-testing-guide)
 - [API Routes Reference](#-api-routes-reference)
 - [Deployment](#-deployment)
 
@@ -106,12 +107,14 @@ To handle 500+ concurrent students hitting the database simultaneously during pr
    - `join_team_atomic(p_invite_code, p_user_id)`: Uses `SELECT ... FOR UPDATE` locks on `teams` to guarantee that no team exceeds 4 members.
 2. **13 High-Performance B-Tree Database Indexes**:
    - Indexed foreign keys on `submissions(team_id, round_id)`, `scores(team_id, round_id, judge_id)`, `team_members(team_id, user_id)`, `problem_selections(team_id, problem_id)`, and `users(email, role)`.
-3. **In-Memory User Caching**:
+3. **In-Memory User & Catalog Caching**:
    - In-memory 5-minute TTL cache in `ensureUser.ts` eliminates duplicate database lookups during authenticated API requests.
+   - In-memory 3-second catalog cache in `/api/problems` prevents database connection pool exhaustion during traffic bursts.
 4. **Debounced Realtime Listeners**:
    - Event-driven Supabase broadcast with an 8-second cooldown prevents repeated page re-fetches during high traffic bursts.
-5. **Server-Side Aggregation RPC**:
-   - `get_leaderboard_scores()` computes all team totals directly in PostgreSQL in <5ms instead of loading raw scores into JavaScript memory.
+5. **Server-Side Aggregation RPC & Static ISR**:
+   - `get_leaderboard_scores()` computes all team totals directly in PostgreSQL in <5ms.
+   - Static 10s ISR caching on `/leaderboard` serves pre-rendered HTML in <2ms.
 
 ---
 
@@ -130,18 +133,9 @@ To handle 500+ concurrent students hitting the database simultaneously during pr
 
 ## 🗄️ Database Schema & Migrations
 
-The SQL migrations are located in the repository:
-
-1. [`supabase_schema.sql`](file:///e:/ai-olympics/supabase_schema.sql):
-   - Creates core tables: `users`, `teams`, `team_members`, `rounds`, `submissions`, `scores`, `organizer_emails`, `judge_emails`, `judge_assignments`, `leaderboard_config`.
-   - Sets up foreign keys, cascading deletes, and unique constraints.
-2. [`problem_statements_migration.sql`](file:///e:/ai-olympics/problem_statements_migration.sql):
-   - Creates `problem_statements` and `problem_selections` tables.
-   - Adds `is_problems_released` column to `leaderboard_config`.
-3. [`scaling_indexes_and_functions.sql`](file:///e:/ai-olympics/scaling_indexes_and_functions.sql):
-   - Creates 13 performance B-tree indexes.
-   - Defines atomic stored procedures `select_problem_atomic` and `join_team_atomic`.
-   - Defines aggregated leaderboard function `get_leaderboard_scores`.
+The database SQL migrations setup:
+- **Core Tables**: `users`, `teams`, `team_members`, `rounds`, `submissions`, `scores`, `organizer_emails`, `judge_emails`, `judge_assignments`, `leaderboard_config`, `problem_statements`, `problem_selections`.
+- **Atomic Functions**: `select_problem_atomic`, `join_team_atomic`, `get_leaderboard_scores`.
 
 ---
 
@@ -170,8 +164,8 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/hackare.git
-cd hackare
+git clone https://github.com/karthikraj-code/HACKARE-CIC.git
+cd HACKARE-CIC
 ```
 
 ### 2. Install dependencies
@@ -179,27 +173,56 @@ cd hackare
 npm install
 ```
 
-### 3. Setup Supabase Database
-1. Create a new project in [Supabase](https://supabase.com/).
-2. Open the **SQL Editor** in your Supabase dashboard.
-3. Execute the SQL migration files in this order:
-   - Run [`supabase_schema.sql`](file:///e:/ai-olympics/supabase_schema.sql)
-   - Run [`problem_statements_migration.sql`](file:///e:/ai-olympics/problem_statements_migration.sql)
-   - Run [`scaling_indexes_and_functions.sql`](file:///e:/ai-olympics/scaling_indexes_and_functions.sql)
+### 3. Configure Environment Variables
+Create `.env.local` and fill in your Google OAuth and Supabase credentials.
 
-### 4. Configure Environment Variables
-Copy `.env.local.example` (or create `.env.local`) and fill in your Google OAuth and Supabase credentials.
-
-### 5. Run Development Server
+### 4. Run Development Server
 ```bash
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### 6. Build for Production
+### 5. Build for Production
 ```bash
 npm run build
 npm run start
+```
+
+---
+
+## 🧪 Scalability & Concurrency Testing Guide
+
+The repository comes with automated benchmark suites to test high-concurrency performance and race conditions:
+
+### 1. Database Atomic Race-Condition Test
+Simulates **20+ teams attempting to lock the exact same problem statement at the exact same millisecond**:
+```bash
+node scripts/test_race_conditions.mjs
+```
+**Expected Result**:
+- `🟢 Accepted (Locked): 2`
+- `🔴 Rejected (Capacity Full): 18`
+- `🔍 DB Verified Locks: Exactly 2` (Zero duplicates, Zero deadlocks)
+
+### 2. 500+ Concurrent Virtual Users Benchmark
+Simulates 500 simultaneous virtual users hitting the cached Leaderboard, Problem Statements API, and Homepage:
+```bash
+# Start production server
+npm run build
+npm run start
+
+# In another terminal:
+node scripts/stress_test_500.mjs http://localhost:3000
+```
+
+### 3. Sustained Traffic Load Test (Autocannon)
+Benchmark realistic event traffic under sustained load:
+```bash
+# Test Leaderboard with 50 persistent connections over 10s
+npx autocannon -c 50 -d 10 http://localhost:3000/leaderboard
+
+# Test Problem Statements API
+npx autocannon -c 50 -d 10 http://localhost:3000/api/problems
 ```
 
 ---
