@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { createClient } from '@/utils/supabase/client'
 import { 
     Lightbulb, 
     Search, 
@@ -82,35 +83,12 @@ export default function OrganizerProblemStatementsPage() {
     // Expanded descriptions tracking
     const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({})
 
-    useEffect(() => {
-        fetchProblems(true)
+    const supabase = createClient()
 
-        const interval = setInterval(() => {
-            if (document.visibilityState === 'visible' && !isModalOpen && !savingProblem && !togglingRelease) {
-                fetchProblems(false)
-            }
-        }, 10000)
-
-        const handleFocus = () => {
-            if (document.visibilityState === 'visible' && !isModalOpen && !savingProblem && !togglingRelease) {
-                fetchProblems(false)
-            }
-        }
-
-        window.addEventListener('focus', handleFocus)
-        document.addEventListener('visibilitychange', handleFocus)
-
-        return () => {
-            clearInterval(interval)
-            window.removeEventListener('focus', handleFocus)
-            document.removeEventListener('visibilitychange', handleFocus)
-        }
-    }, [isModalOpen, savingProblem, togglingRelease])
-
-    const fetchProblems = async (showLoading = false) => {
+    const fetchProblems = useCallback(async (showLoading = false) => {
         try {
             if (showLoading) setLoading(true)
-            const res = await fetch('/api/problems')
+            const res = await fetch('/api/problems?fresh=true', { cache: 'no-store' })
             const data = await res.json()
             if (data.success) {
                 setProblems(data.problem_statements || [])
@@ -122,7 +100,52 @@ export default function OrganizerProblemStatementsPage() {
         } finally {
             if (showLoading) setLoading(false)
         }
-    }
+    }, [])
+
+    useEffect(() => {
+        fetchProblems(true)
+
+        // Supabase Realtime channel for live problem statements & selections sync
+        let channel: any = null
+        try {
+            channel = supabase
+                .channel('organizer-ps-live')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'problem_selections' }, () => {
+                    fetchProblems(false)
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'problem_statements' }, () => {
+                    fetchProblems(false)
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'leaderboard_config' }, () => {
+                    fetchProblems(false)
+                })
+                .subscribe()
+        } catch (err) {
+            console.warn('Realtime subscription error:', err)
+        }
+
+        const interval = setInterval(() => {
+            if (document.visibilityState === 'visible' && !isModalOpen && !savingProblem && !togglingRelease) {
+                fetchProblems(false)
+            }
+        }, 15000)
+
+        const handleFocus = () => {
+            if (document.visibilityState === 'visible' && !isModalOpen && !savingProblem && !togglingRelease) {
+                fetchProblems(false)
+            }
+        }
+
+        window.addEventListener('focus', handleFocus)
+
+        return () => {
+            if (channel) {
+                supabase.removeChannel(channel)
+            }
+            clearInterval(interval)
+            window.removeEventListener('focus', handleFocus)
+        }
+    }, [fetchProblems, isModalOpen, savingProblem, togglingRelease, supabase])
 
     const openCreateModal = () => {
         setEditingProblem(null)

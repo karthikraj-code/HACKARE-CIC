@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { createAdminClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 import { ensureDbUser } from '@/lib/ensureUser'
+import { invalidateProblemsCache } from '@/app/api/problems/route'
 
 export async function POST(request: Request) {
     try {
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
 
         if (!rpcError && rpcData) {
             if (rpcData.success) {
+                invalidateProblemsCache()
                 return NextResponse.json({
                     success: true,
                     message: rpcData.message || 'Problem statement successfully locked!'
@@ -113,6 +115,8 @@ export async function POST(request: Request) {
             .from('teams')
             .update({ selected_problem_id: problem_id })
             .eq('id', team_id)
+
+        invalidateProblemsCache()
 
         return NextResponse.json({
             success: true,

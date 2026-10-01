@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 
 interface DashboardRealtimeListenerProps {
@@ -9,13 +9,26 @@ interface DashboardRealtimeListenerProps {
     intervalMs?: number
 }
 
+// Pages that handle their own granular in-place realtime updates without needing router.refresh()
+const SELF_SYNCING_PATHS = [
+    '/dashboard/participant/problem-statement',
+    '/dashboard/organizer/problem-statements',
+    '/dashboard/organizer/teams'
+]
+
 export default function DashboardRealtimeListener({ intervalMs = 0 }: DashboardRealtimeListenerProps) {
     const router = useRouter()
+    const pathname = usePathname()
     const lastRefreshTimeRef = useRef<number>(Date.now())
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
+    const isSelfSyncing = SELF_SYNCING_PATHS.some(path => pathname?.startsWith(path))
+
     useEffect(() => {
-        const MIN_COOLDOWN_MS = 8000 // Minimum 8 seconds between router.refresh calls
+        // If on a page that handles its own granular live updates, bypass full router.refresh
+        if (isSelfSyncing) return
+
+        const MIN_COOLDOWN_MS = 10000 // Minimum 10 seconds between router.refresh calls
 
         const triggerThrottledRefresh = () => {
             const now = Date.now()
@@ -24,7 +37,7 @@ export default function DashboardRealtimeListener({ intervalMs = 0 }: DashboardR
             }
 
             const timeSinceLast = now - lastRefreshTimeRef.current
-            const delay = timeSinceLast < MIN_COOLDOWN_MS ? MIN_COOLDOWN_MS - timeSinceLast : 800
+            const delay = timeSinceLast < MIN_COOLDOWN_MS ? MIN_COOLDOWN_MS - timeSinceLast : 1000
 
             debounceTimerRef.current = setTimeout(() => {
                 if (document.visibilityState === 'visible') {
@@ -46,9 +59,6 @@ export default function DashboardRealtimeListener({ intervalMs = 0 }: DashboardR
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'leaderboard_config' }, () => {
                     triggerThrottledRefresh()
                 })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'problem_statements' }, () => {
-                    triggerThrottledRefresh()
-                })
                 .subscribe()
         } catch (err) {
             console.warn('Realtime sync subscription init error:', err)
@@ -61,21 +71,8 @@ export default function DashboardRealtimeListener({ intervalMs = 0 }: DashboardR
                 if (document.visibilityState === 'visible') {
                     triggerThrottledRefresh()
                 }
-            }, Math.max(intervalMs, 10000))
+            }, Math.max(intervalMs, 15000))
         }
-
-        // 3. Tab visibility / Focus auto-refresh (only if away for > 20s)
-        const handleVisibilityOrFocus = () => {
-            if (document.visibilityState === 'visible') {
-                const elapsed = Date.now() - lastRefreshTimeRef.current
-                if (elapsed > 20000) {
-                    triggerThrottledRefresh()
-                }
-            }
-        }
-
-        window.addEventListener('focus', handleVisibilityOrFocus)
-        document.addEventListener('visibilitychange', handleVisibilityOrFocus)
 
         return () => {
             if (channel) {
@@ -87,10 +84,8 @@ export default function DashboardRealtimeListener({ intervalMs = 0 }: DashboardR
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current)
             }
-            window.removeEventListener('focus', handleVisibilityOrFocus)
-            document.removeEventListener('visibilitychange', handleVisibilityOrFocus)
         }
-    }, [router, intervalMs])
+    }, [router, intervalMs, isSelfSyncing])
 
     return null
 }

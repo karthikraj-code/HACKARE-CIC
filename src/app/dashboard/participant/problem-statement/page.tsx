@@ -1,25 +1,29 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { getSession } from 'next-auth/react'
+import { createClient } from '@/utils/supabase/client'
 import { 
     Search, 
-    Filter, 
     Lightbulb, 
     CheckCircle2, 
     AlertCircle, 
     Lock, 
     Users, 
     ArrowRight, 
-    Check, 
     X,
-    Sparkles
+    Sparkles,
+    Radio,
+    RefreshCw
 } from 'lucide-react'
 import Link from 'next/link'
 import CopyButton from '@/components/CopyButton'
 import { formatDateTime } from '@/lib/dateUtils'
 
 export default function ProblemStatementSelectionPage() {
+    const supabase = createClient()
+
+    // Data states
     const [loading, setLoading] = useState(true)
     const [isReleased, setIsReleased] = useState(true)
     const [problems, setProblems] = useState<any[]>([])
@@ -27,6 +31,7 @@ export default function ProblemStatementSelectionPage() {
     const [userSelection, setUserSelection] = useState<any>(null)
     const [currentUser, setCurrentUser] = useState<any>(null)
     const [isLeader, setIsLeader] = useState(false)
+    const [liveSyncPulse, setLiveSyncPulse] = useState(false)
     
     // Filtering and Search
     const [searchQuery, setSearchQuery] = useState('')
@@ -38,16 +43,104 @@ export default function ProblemStatementSelectionPage() {
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
 
+    // Refs for debouncing and preventing stale state in realtime callbacks
+    const userTeamRef = useRef<any>(null)
+    userTeamRef.current = userTeam
+
+    const userSelectionRef = useRef<any>(null)
+    userSelectionRef.current = userSelection
+
+    const problemsRef = useRef<any[]>([])
+    problemsRef.current = problems
+
+    const isFetchingRef = useRef(false)
+    const pulseTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+    const triggerLivePulse = () => {
+        setLiveSyncPulse(true)
+        if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current)
+        pulseTimerRef.current = setTimeout(() => setLiveSyncPulse(false), 2000)
+    }
+
+    /**
+     * Silent Background Data Fetcher
+     * @param showLoading - true ONLY on initial component mount when no data is present
+     */
+    const fetchData = useCallback(async (showLoading = false) => {
+        if (isFetchingRef.current) return
+        isFetchingRef.current = true
+
+        try {
+            if (showLoading) setLoading(true)
+            const session = await getSession()
+            setCurrentUser(session?.user)
+
+            const res = await fetch('/api/problems?fresh=true', {
+                cache: 'no-store'
+            })
+            const data = await res.json()
+
+            if (data.success) {
+                setIsReleased(data.is_released !== false)
+                setProblems(data.problem_statements || [])
+                setUserTeam(data.user_team)
+                setUserSelection(data.user_team_selection)
+                setIsLeader(Boolean(data.is_leader || (data.user_team && session?.user && (data.user_team.leader_id === session.user.id))))
+                triggerLivePulse()
+            }
+        } catch (err: any) {
+            console.error('Failed to load problem statements', err)
+            if (showLoading) setError('Failed to load problem statements.')
+        } finally {
+            if (showLoading) setLoading(false)
+            isFetchingRef.current = false
+        }
+    }, [])
+
     useEffect(() => {
+        // Initial load
         fetchData(true)
 
-        // Only poll if statement is not yet locked
+        // 1. SUPABASE REALTIME SUBSCRIPTION FOR DYNAMIC LIVE SYNC
+        // Instantly synchronizes capacity, slots, problem statements, and team selections in real time
+        let channel: any = null
+        try {
+            channel = supabase
+                .channel('realtime-ps-selection-live')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'problem_selections' }, (payload: any) => {
+                    triggerLivePulse()
+                    // Silent background fetch to update exact slot counts and locked statement state
+                    fetchData(false)
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'problem_statements' }, (payload: any) => {
+                    triggerLivePulse()
+                    fetchData(false)
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'leaderboard_config' }, (payload: any) => {
+                    triggerLivePulse()
+                    fetchData(false)
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' }, (payload: any) => {
+                    triggerLivePulse()
+                    fetchData(false)
+                })
+                .subscribe((status: string) => {
+                    if (status === 'SUBSCRIBED') {
+                        console.log('[Realtime] Live sync active on problem selections')
+                    }
+                })
+        } catch (err) {
+            console.warn('Realtime subscription error:', err)
+        }
+
+        // 2. Gentle fallback interval (every 15s) only as safety net, runs SILENTLY without spinners
         const interval = setInterval(() => {
-            if (document.visibilityState === 'visible' && !submitting && !userSelection) {
+            if (document.visibilityState === 'visible' && !submitting) {
                 fetchData(false)
             }
-        }, 10000)
+        }, 15000)
 
+        // 3. Focus handler that refreshes silently
         const handleFocus = () => {
             if (document.visibilityState === 'visible' && !submitting) {
                 fetchData(false)
@@ -55,63 +148,55 @@ export default function ProblemStatementSelectionPage() {
         }
 
         window.addEventListener('focus', handleFocus)
-        document.addEventListener('visibilitychange', handleFocus)
 
         return () => {
+            if (channel) {
+                supabase.removeChannel(channel)
+            }
             clearInterval(interval)
             window.removeEventListener('focus', handleFocus)
-            document.removeEventListener('visibilitychange', handleFocus)
+            if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current)
         }
-    }, [submitting, userSelection])
+    }, [fetchData, submitting, supabase])
 
-    const fetchData = async (showLoading = false) => {
-        try {
-            if (showLoading) setLoading(true)
-            const session = await getSession()
-            setCurrentUser(session?.user)
-
-            const res = await fetch('/api/problems')
-            const data = await res.json()
-            if (data.success) {
-                setIsReleased(data.is_released !== false)
-                setProblems(data.problem_statements || [])
-                setUserTeam(data.user_team)
-                setUserSelection(data.user_team_selection)
-                setIsLeader(Boolean(data.is_leader || (data.user_team && session?.user && (data.user_team.leader_id === session.user.id))))
-            }
-        } catch (err: any) {
-            console.error('Failed to load problem statements', err)
-            if (showLoading) setError('Failed to load problem statements.')
-        } finally {
-            if (showLoading) setLoading(false)
-        }
-    }
-
-
+    // Optimistic & Atomic Lock Handler
     const handleLockProblem = async () => {
         if (!confirmProblem || !userTeam) return
         setSubmitting(true)
         setError('')
         setSuccess('')
 
+        const previousSelection = userSelection
+        const targetProblem = confirmProblem
+
+        // Optimistically update UI so user has instant feedback
+        setUserSelection({
+            problem_id: targetProblem.id,
+            team_id: userTeam.id,
+            selected_at: new Date().toISOString(),
+            problem_statements: targetProblem
+        })
+
         try {
             const res = await fetch('/api/problems/select', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    problem_id: confirmProblem.id,
+                    problem_id: targetProblem.id,
                     team_id: userTeam.id
                 })
             })
 
             const data = await res.json()
             if (!res.ok) {
+                // Revert optimistic update on failure
+                setUserSelection(previousSelection)
                 throw new Error(data.error || 'Failed to lock problem statement')
             }
 
             setSuccess('Problem statement successfully locked for your team!')
             setConfirmProblem(null)
-            await fetchData()
+            await fetchData(false)
         } catch (err: any) {
             setError(err.message)
         } finally {
@@ -127,20 +212,29 @@ export default function ProblemStatementSelectionPage() {
         const matchesDomain = selectedDomain === 'All' || p.domain === selectedDomain
         const query = searchQuery.toLowerCase().trim()
         const matchesSearch = !query || 
-            p.statement_code.toLowerCase().includes(query) ||
-            p.title.toLowerCase().includes(query) ||
-            p.description.toLowerCase().includes(query) ||
-            p.domain.toLowerCase().includes(query)
+            p.statement_code?.toLowerCase().includes(query) ||
+            p.title?.toLowerCase().includes(query) ||
+            p.description?.toLowerCase().includes(query) ||
+            p.domain?.toLowerCase().includes(query)
         return matchesDomain && matchesSearch
     })
 
     const hasLocked = !!userSelection
 
-    if (loading) {
+    // Initial Loading Skeleton only shown on initial boot
+    if (loading && problems.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-24 text-gray-500">
-                <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
-                <p className="font-medium text-gray-600">Loading Problem Statements...</p>
+            <div className="space-y-8 max-w-6xl mx-auto pb-16 animate-pulse">
+                <div className="bg-white p-8 rounded-2xl border border-gray-200 h-40" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="bg-white rounded-2xl border border-gray-200 p-6 h-64 space-y-4">
+                            <div className="h-6 bg-slate-200 rounded-lg w-1/3" />
+                            <div className="h-8 bg-slate-200 rounded-lg w-3/4" />
+                            <div className="h-20 bg-slate-100 rounded-lg w-full" />
+                        </div>
+                    ))}
+                </div>
             </div>
         )
     }
@@ -153,15 +247,28 @@ export default function ProblemStatementSelectionPage() {
                 <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-amber-500 to-indigo-600" />
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div>
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
                             <span className="bg-amber-100 text-amber-800 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full flex items-center gap-1.5">
                                 <Sparkles size={14} /> Step 1 Selection
                             </span>
-                            <span className="text-xs font-bold text-gray-400">• {problems.length} Problem Statements Available</span>
+                            <span className="text-xs font-bold text-gray-400">• {problems.length} Problem Statements</span>
+
+                            {/* Live Dynamic Sync Indicator */}
+                            <div className={`flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-bold transition-all ${
+                                liveSyncPulse 
+                                    ? 'bg-emerald-100 text-emerald-800 ring-2 ring-emerald-400 scale-102' 
+                                    : 'bg-slate-100 text-slate-600'
+                            }`}>
+                                <span className={`w-2 h-2 rounded-full ${liveSyncPulse ? 'bg-emerald-500 animate-ping' : 'bg-emerald-500'}`} />
+                                <span className="flex items-center gap-1">
+                                    <Radio size={12} className={liveSyncPulse ? 'text-emerald-600 animate-spin' : 'text-emerald-600'} />
+                                    {liveSyncPulse ? 'Live Updated' : 'Live Sync Active'}
+                                </span>
+                            </div>
                         </div>
                         <h1 className="text-3xl font-extrabold text-gray-900">Problem Statement Selection</h1>
                         <p className="text-gray-600 text-sm mt-1 max-w-2xl">
-                            Each problem statement can be chosen by a maximum of <strong className="text-gray-900">2 teams</strong> on a first-come, first-served basis. Only the Team Leader can lock the choice.
+                            Each problem statement can be chosen by a maximum of <strong className="text-gray-900">2 teams</strong> on a first-come, first-served basis. Availability updates dynamically in real-time.
                         </p>
                     </div>
 
@@ -181,15 +288,25 @@ export default function ProblemStatementSelectionPage() {
 
             {/* Error / Success Notifications */}
             {error && (
-                <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 flex items-center gap-3 text-sm font-medium">
-                    <AlertCircle className="shrink-0 text-red-600" size={20} />
-                    <span>{error}</span>
+                <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 flex items-center justify-between gap-3 text-sm font-medium animate-in fade-in">
+                    <div className="flex items-center gap-3">
+                        <AlertCircle className="shrink-0 text-red-600" size={20} />
+                        <span>{error}</span>
+                    </div>
+                    <button onClick={() => setError('')} className="text-red-500 hover:text-red-700 cursor-pointer">
+                        <X size={16} />
+                    </button>
                 </div>
             )}
             {success && (
-                <div className="p-4 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 flex items-center gap-3 text-sm font-medium">
-                    <CheckCircle2 className="shrink-0 text-emerald-600" size={20} />
-                    <span>{success}</span>
+                <div className="p-4 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 flex items-center justify-between gap-3 text-sm font-medium animate-in fade-in">
+                    <div className="flex items-center gap-3">
+                        <CheckCircle2 className="shrink-0 text-emerald-600" size={20} />
+                        <span>{success}</span>
+                    </div>
+                    <button onClick={() => setSuccess('')} className="text-emerald-700 hover:text-emerald-900 cursor-pointer">
+                        <X size={16} />
+                    </button>
                 </div>
             )}
 
@@ -214,7 +331,7 @@ export default function ProblemStatementSelectionPage() {
 
             {/* Locked Problem Statement Showcase */}
             {hasLocked && userSelection?.problem_statements && (
-                <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-8 shadow-sm relative overflow-hidden">
+                <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-8 shadow-sm relative overflow-hidden animate-in fade-in">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md">
@@ -282,7 +399,7 @@ export default function ProblemStatementSelectionPage() {
                         </span>
                         <h2 className="text-3xl font-black text-gray-900">Problem Statements Awaiting Release</h2>
                         <p className="text-gray-600 text-sm max-w-md mx-auto leading-relaxed">
-                            The organizers have not released the problem statements yet. Once released, all problem statements will be revealed here for your team to browse and lock.
+                            The organizers have not released the problem statements yet. Once released, all problem statements will appear here dynamically in real time.
                         </p>
                     </div>
                     <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl max-w-md mx-auto text-xs text-gray-600 font-medium flex items-center justify-center gap-2">
@@ -328,161 +445,164 @@ export default function ProblemStatementSelectionPage() {
                             </div>
                         </div>
 
+                        {/* Domain Filter Pills */}
+                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+                            {domains.map(domain => {
+                                const count = domain === 'All' 
+                                    ? problems.length 
+                                    : problems.filter(p => p.domain === domain).length
 
-                {/* Domain Filter Pills */}
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
-                    {domains.map(domain => {
-                        const count = domain === 'All' 
-                            ? problems.length 
-                            : problems.filter(p => p.domain === domain).length
-
-                        return (
-                            <button
-                                key={domain}
-                                onClick={() => setSelectedDomain(domain)}
-                                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                                    selectedDomain === domain
-                                        ? 'bg-slate-900 text-white shadow-md'
-                                        : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-                                }`}
-                            >
-                                <span>{domain}</span>
-                                <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                                    selectedDomain === domain ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
-                                }`}>
-                                    {count}
-                                </span>
-                            </button>
-                        )
-                    })}
-                </div>
-            </div>
-
-            {/* Problem Statements Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredProblems.map((problem) => {
-                    const isSelectedByThisTeam = userSelection?.problem_id === problem.id
-                    const isFull = problem.is_full
-                    const slotsTaken = problem.current_teams || 0
-                    const maxSlots = problem.max_teams || 2
-                    const slotsLeft = Math.max(0, maxSlots - slotsTaken)
-
-                    return (
-                        <div
-                            key={problem.id || problem.statement_code}
-                            className={`bg-white rounded-2xl border transition-all duration-200 flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-md ${
-                                isSelectedByThisTeam
-                                    ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/20'
-                                    : isFull
-                                    ? 'border-gray-200 opacity-75 bg-gray-50/50'
-                                    : 'border-gray-200 hover:border-blue-300'
-                            }`}
-                        >
-                            <div className="p-6">
-                                {/* Top Badges */}
-                                <div className="flex justify-between items-start gap-2 mb-3">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
-                                            {problem.statement_code}
-                                        </span>
-                                        <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
-                                            {problem.domain}
-                                        </span>
-                                    </div>
-
-                                    {/* Capacity Status */}
-                                    {isFull ? (
-                                        <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-red-100 text-red-700 border border-red-200 shrink-0 flex items-center gap-1">
-                                            <Lock size={12} /> FULL ({maxSlots}/{maxSlots})
-                                        </span>
-                                    ) : (
-                                        <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
-                                            {slotsLeft} {slotsLeft === 1 ? 'Slot' : 'Slots'} Left
-                                        </span>
-                                    )}
-                                </div>
-
-                                {/* Title & Description */}
-                                <div className="flex justify-between items-start gap-2 mb-3">
-                                    <h3 className="text-lg font-black text-gray-900 leading-snug">
-                                        {problem.title}
-                                    </h3>
-                                    <CopyButton
-                                        text={`${problem.statement_code}: ${problem.title}\n\n${problem.description}`}
-                                        label="Copy"
-                                        variant="pill"
-                                        className="shrink-0"
-                                        title="Copy problem statement and description"
-                                    />
-                                </div>
-                                <div className="bg-slate-50/90 p-4 rounded-xl border border-slate-100 mb-6">
-                                    <p className="text-gray-700 text-xs sm:text-sm whitespace-pre-wrap break-words leading-relaxed font-medium">
-                                        {problem.description}
-                                    </p>
-                                </div>
-
-                                {/* Capacity Bar */}
-                                <div className="space-y-1.5 pt-2 border-t border-gray-100">
-                                    <div className="flex justify-between text-xs font-semibold text-gray-500">
-                                        <span>Capacity Meter</span>
-                                        <span className="font-mono">{slotsTaken} / {maxSlots} Teams</span>
-                                    </div>
-                                    <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden flex">
-                                        <div
-                                            className={`h-full transition-all duration-300 ${
-                                                isFull
-                                                    ? 'bg-red-500'
-                                                    : slotsLeft === 1
-                                                    ? 'bg-amber-500'
-                                                    : 'bg-emerald-500'
-                                            }`}
-                                            style={{ width: `${(slotsTaken / maxSlots) * 100}%` }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Card Footer / Action */}
-                            <div className="bg-gray-50/80 px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-                                {isSelectedByThisTeam ? (
-                                    <div className="w-full py-2.5 bg-emerald-600 text-white rounded-xl text-center text-sm font-bold flex items-center justify-center gap-2 shadow-sm">
-                                        <CheckCircle2 size={16} /> Locked for Your Team
-                                    </div>
-                                ) : hasLocked ? (
-                                    <div className="text-xs text-gray-400 italic">
-                                        Your team already locked a problem statement.
-                                    </div>
-                                ) : !userTeam ? (
-                                    <Link
-                                        href="/dashboard/participant/team"
-                                        className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
-                                    >
-                                        Join team to select &rarr;
-                                    </Link>
-                                ) : !isLeader ? (
-                                    <span className="text-xs text-gray-500 italic">
-                                        Leader-only action
-                                    </span>
-                                ) : isFull ? (
+                                return (
                                     <button
-                                        disabled
-                                        className="w-full py-2.5 bg-gray-200 text-gray-400 rounded-xl text-sm font-bold cursor-not-allowed flex items-center justify-center gap-2"
+                                        key={domain}
+                                        onClick={() => setSelectedDomain(domain)}
+                                        className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
+                                            selectedDomain === domain
+                                                ? 'bg-slate-900 text-white shadow-md'
+                                                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                                        }`}
                                     >
-                                        <Lock size={16} /> Capacity Full ({maxSlots}/{maxSlots} Teams)
+                                        <span>{domain}</span>
+                                        <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                                            selectedDomain === domain ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+                                        }`}>
+                                            {count}
+                                        </span>
                                     </button>
-                                ) : (
-                                    <button
-                                        onClick={() => setConfirmProblem(problem)}
-                                        className="w-full py-2.5 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-2 active:scale-98"
-                                    >
-                                        Select & Lock Statement &rarr;
-                                    </button>
-                                )}
-                            </div>
+                                )
+                            })}
                         </div>
-                    )
-                })}
-            </div>
+                    </div>
+
+                    {/* Problem Statements Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {filteredProblems.map((problem) => {
+                            const isSelectedByThisTeam = userSelection?.problem_id === problem.id
+                            const isFull = problem.is_full
+                            const slotsTaken = problem.current_teams || 0
+                            const maxSlots = problem.max_teams || 2
+                            const slotsLeft = Math.max(0, maxSlots - slotsTaken)
+
+                            return (
+                                <div
+                                    key={problem.id || problem.statement_code}
+                                    className={`bg-white rounded-2xl border transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-md ${
+                                        isSelectedByThisTeam
+                                            ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/20'
+                                            : isFull
+                                            ? 'border-gray-200 opacity-75 bg-gray-50/50'
+                                            : 'border-gray-200 hover:border-blue-300'
+                                    }`}
+                                >
+                                    <div className="p-6">
+                                        {/* Top Badges */}
+                                        <div className="flex justify-between items-start gap-2 mb-3">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <span className="font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
+                                                    {problem.statement_code}
+                                                </span>
+                                                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
+                                                    {problem.domain}
+                                                </span>
+                                            </div>
+
+                                            {/* Capacity Status */}
+                                            {isFull ? (
+                                                <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-red-100 text-red-700 border border-red-200 shrink-0 flex items-center gap-1 animate-in fade-in">
+                                                    <Lock size={12} /> FULL ({maxSlots}/{maxSlots})
+                                                </span>
+                                            ) : (
+                                                <span className={`text-[11px] font-black px-2.5 py-1 rounded-full border shrink-0 transition-all ${
+                                                    slotsLeft === 1 
+                                                        ? 'bg-amber-100 text-amber-900 border-amber-300' 
+                                                        : 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                                                }`}>
+                                                    {slotsLeft} {slotsLeft === 1 ? 'Slot' : 'Slots'} Left
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Title & Description */}
+                                        <div className="flex justify-between items-start gap-2 mb-3">
+                                            <h3 className="text-lg font-black text-gray-900 leading-snug">
+                                                {problem.title}
+                                            </h3>
+                                            <CopyButton
+                                                text={`${problem.statement_code}: ${problem.title}\n\n${problem.description}`}
+                                                label="Copy"
+                                                variant="pill"
+                                                className="shrink-0"
+                                                title="Copy problem statement and description"
+                                            />
+                                        </div>
+                                        <div className="bg-slate-50/90 p-4 rounded-xl border border-slate-100 mb-6">
+                                            <p className="text-gray-700 text-xs sm:text-sm whitespace-pre-wrap break-words leading-relaxed font-medium">
+                                                {problem.description}
+                                            </p>
+                                        </div>
+
+                                        {/* Capacity Bar */}
+                                        <div className="space-y-1.5 pt-2 border-t border-gray-100">
+                                            <div className="flex justify-between text-xs font-semibold text-gray-500">
+                                                <span>Capacity Meter</span>
+                                                <span className="font-mono">{slotsTaken} / {maxSlots} Teams</span>
+                                            </div>
+                                            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden flex">
+                                                <div
+                                                    className={`h-full transition-all duration-500 ease-out ${
+                                                        isFull
+                                                            ? 'bg-red-500'
+                                                            : slotsLeft === 1
+                                                            ? 'bg-amber-500'
+                                                            : 'bg-emerald-500'
+                                                    }`}
+                                                    style={{ width: `${Math.min(100, (slotsTaken / maxSlots) * 100)}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Card Footer / Action */}
+                                    <div className="bg-gray-50/80 px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+                                        {isSelectedByThisTeam ? (
+                                            <div className="w-full py-2.5 bg-emerald-600 text-white rounded-xl text-center text-sm font-bold flex items-center justify-center gap-2 shadow-sm animate-in zoom-in-95">
+                                                <CheckCircle2 size={16} /> Locked for Your Team
+                                            </div>
+                                        ) : hasLocked ? (
+                                            <div className="text-xs text-gray-400 italic">
+                                                Your team already locked a problem statement.
+                                            </div>
+                                        ) : !userTeam ? (
+                                            <Link
+                                                href="/dashboard/participant/team"
+                                                className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
+                                            >
+                                                Join team to select &rarr;
+                                            </Link>
+                                        ) : !isLeader ? (
+                                            <span className="text-xs text-gray-500 italic">
+                                                Leader-only action
+                                            </span>
+                                        ) : isFull ? (
+                                            <button
+                                                disabled
+                                                className="w-full py-2.5 bg-gray-200 text-gray-400 rounded-xl text-sm font-bold cursor-not-allowed flex items-center justify-center gap-2"
+                                            >
+                                                <Lock size={16} /> Capacity Full ({maxSlots}/{maxSlots} Teams)
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => setConfirmProblem(problem)}
+                                                className="w-full py-2.5 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-2 active:scale-98 cursor-pointer"
+                                            >
+                                                Select & Lock Statement &rarr;
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
 
                     {/* Zero Results State */}
                     {filteredProblems.length === 0 && (
@@ -494,7 +614,7 @@ export default function ProblemStatementSelectionPage() {
                             </p>
                             <button
                                 onClick={() => { setSearchQuery(''); setSelectedDomain('All') }}
-                                className="mt-4 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold hover:bg-blue-100 transition-colors"
+                                className="mt-4 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold hover:bg-blue-100 transition-colors cursor-pointer"
                             >
                                 Reset Filters
                             </button>
@@ -504,7 +624,6 @@ export default function ProblemStatementSelectionPage() {
             )}
 
             {/* Confirmation Modal */}
-
             {confirmProblem && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
                     <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 space-y-6 animate-in zoom-in-95">
@@ -520,7 +639,7 @@ export default function ProblemStatementSelectionPage() {
                             </div>
                             <button
                                 onClick={() => setConfirmProblem(null)}
-                                className="text-gray-400 hover:text-gray-600 p-1"
+                                className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
                             >
                                 <X size={20} />
                             </button>
@@ -553,7 +672,7 @@ export default function ProblemStatementSelectionPage() {
                                 type="button"
                                 onClick={() => setConfirmProblem(null)}
                                 disabled={submitting}
-                                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors"
+                                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors cursor-pointer"
                             >
                                 Cancel
                             </button>
@@ -561,9 +680,15 @@ export default function ProblemStatementSelectionPage() {
                                 type="button"
                                 onClick={handleLockProblem}
                                 disabled={submitting}
-                                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-all shadow-md disabled:bg-gray-400 flex items-center justify-center gap-2"
+                                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-all shadow-md disabled:bg-gray-400 flex items-center justify-center gap-2 cursor-pointer"
                             >
-                                {submitting ? 'Locking...' : 'Yes, Lock Statement'}
+                                {submitting ? (
+                                    <>
+                                        <RefreshCw size={16} className="animate-spin" /> Locking...
+                                    </>
+                                ) : (
+                                    'Yes, Lock Statement'
+                                )}
                             </button>
                         </div>
                     </div>

@@ -1,12 +1,12 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { createAdminClient } from '@/utils/supabase/server'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { PROBLEM_STATEMENTS_DATA } from '@/app/api/seed-problems/route'
 import { ensureDbUser } from '@/lib/ensureUser'
 
-// In-memory short TTL cache (3 seconds) for the catalog & counts under high-concurrency swarms
+// In-memory short TTL cache (2 seconds) for catalog & counts under high-concurrency swarms
 let cachedCatalog: {
     data: {
         isProblemsReleased: boolean
@@ -15,12 +15,22 @@ let cachedCatalog: {
     expiresAt: number
 } | null = null
 
-const CATALOG_CACHE_TTL = 3000 // 3 seconds
+const CATALOG_CACHE_TTL = 2000 // 2 seconds
 
-export async function GET() {
+export function invalidateProblemsCache() {
+    cachedCatalog = null
+}
+
+export async function GET(request: NextRequest) {
     try {
         const supabase = await createAdminClient()
         const now = Date.now()
+        const url = new URL(request.url)
+        const isFresh = url.searchParams.get('fresh') === 'true'
+
+        if (isFresh) {
+            cachedCatalog = null
+        }
 
         // 1. Fast path session check: Only invoke expensive cryptographic session decoding if session cookie exists
         const cookieStore = await cookies()
@@ -49,7 +59,7 @@ export async function GET() {
         let isProblemsReleased = false
         let enrichedProblems: any[] = []
 
-        if (cachedCatalog && cachedCatalog.expiresAt > now) {
+        if (!isFresh && cachedCatalog && cachedCatalog.expiresAt > now) {
             isProblemsReleased = cachedCatalog.data.isProblemsReleased
             enrichedProblems = cachedCatalog.data.enrichedProblems
         } else {
@@ -139,7 +149,7 @@ export async function GET() {
                 user_team_selection: userTeamSelection
             }, {
                 headers: {
-                    'Cache-Control': 'public, s-maxage=3, stale-while-revalidate=6'
+                    'Cache-Control': 'no-store, max-age=0'
                 }
             })
         }
@@ -153,7 +163,7 @@ export async function GET() {
             user_team_selection: userTeamSelection
         }, {
             headers: {
-                'Cache-Control': 'public, s-maxage=3, stale-while-revalidate=6'
+                'Cache-Control': 'no-store, max-age=0'
             }
         })
     } catch (error: any) {
