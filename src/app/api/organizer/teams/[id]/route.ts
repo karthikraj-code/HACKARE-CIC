@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { createAdminClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 import { ensureDbUser } from '@/lib/ensureUser'
+import crypto from 'crypto'
 
 export async function GET(
     request: Request,
@@ -271,48 +272,97 @@ export async function PUT(
             }
         }
 
-        // 6. Add a member if requested
-        if (add_member_email && String(add_member_email).trim()) {
-            const emailToAdd = String(add_member_email).trim().toLowerCase()
+        // 6. Add member(s) if requested
+        const membersToAdd: any[] = []
+        if (body.add_members && Array.isArray(body.add_members)) {
+            membersToAdd.push(...body.add_members)
+        } else if (body.add_member && typeof body.add_member === 'object') {
+            membersToAdd.push(body.add_member)
+        } else if (add_member_email && String(add_member_email).trim()) {
+            membersToAdd.push({ email: add_member_email })
+        }
+
+        for (const mToAdd of membersToAdd) {
+            const emailToAdd = mToAdd.email ? String(mToAdd.email).trim().toLowerCase() : ''
+            const userIdToAdd = mToAdd.user_id ? String(mToAdd.user_id).trim() : ''
+
+            if (!emailToAdd && !userIdToAdd) continue
 
             // Find user in users table
-            let { data: targetUser } = await supabase
-                .from('users')
-                .select('id, name, email')
-                .eq('email', emailToAdd)
-                .maybeSingle()
+            let targetUser: any = null
+            if (userIdToAdd) {
+                const { data: uById } = await supabase
+                    .from('users')
+                    .select('id, name, email, reg_no, dept, section, year, role')
+                    .eq('id', userIdToAdd)
+                    .maybeSingle()
+                targetUser = uById
+            }
+
+            if (!targetUser && emailToAdd) {
+                const { data: uByEmail } = await supabase
+                    .from('users')
+                    .select('id, name, email, reg_no, dept, section, year, role')
+                    .eq('email', emailToAdd)
+                    .maybeSingle()
+                targetUser = uByEmail
+            }
 
             if (!targetUser) {
                 // Auto create user record
-                const newUserId = crypto.randomUUID()
+                const newUserId = userIdToAdd || crypto.randomUUID()
+                const studentName = mToAdd.name?.trim() || (emailToAdd ? emailToAdd.split('@')[0] : 'Participant')
+
                 const { data: newUser, error: createErr } = await supabase
                     .from('users')
                     .insert([{
                         id: newUserId,
                         email: emailToAdd,
-                        name: emailToAdd.split('@')[0],
-                        role: 'participant'
+                        name: studentName,
+                        role: 'participant',
+                        reg_no: mToAdd.reg_no ? String(mToAdd.reg_no).trim() : null,
+                        dept: mToAdd.dept ? String(mToAdd.dept).trim() : null,
+                        section: mToAdd.section ? String(mToAdd.section).trim() : null,
+                        year: mToAdd.year ? String(mToAdd.year).trim() : null
                     }])
                     .select('id, name, email')
                     .single()
 
                 if (createErr || !newUser) {
-                    return NextResponse.json({ error: 'Could not create participant record for ' + emailToAdd }, { status: 500 })
+                    return NextResponse.json({ error: 'Could not create participant record for ' + (emailToAdd || userIdToAdd) }, { status: 500 })
                 }
                 targetUser = newUser
+            } else {
+                // Update profile fields if provided
+                const profileUpdates: any = {}
+                if (mToAdd.name && mToAdd.name !== targetUser.name) profileUpdates.name = String(mToAdd.name).trim()
+                if (mToAdd.reg_no !== undefined) profileUpdates.reg_no = mToAdd.reg_no ? String(mToAdd.reg_no).trim() : null
+                if (mToAdd.dept !== undefined) profileUpdates.dept = mToAdd.dept ? String(mToAdd.dept).trim() : null
+                if (mToAdd.section !== undefined) profileUpdates.section = mToAdd.section ? String(mToAdd.section).trim() : null
+                if (mToAdd.year !== undefined) profileUpdates.year = mToAdd.year ? String(mToAdd.year).trim() : null
+
+                if (Object.keys(profileUpdates).length > 0) {
+                    await supabase.from('users').update(profileUpdates).eq('id', targetUser.id)
+                }
             }
 
             // Check if user is already in any team
             const { data: existingMembership } = await supabase
                 .from('team_members')
-                .select('team_id, teams(team_name)')
+                .select('team_id, teams(team_name, team_code)')
                 .eq('user_id', targetUser.id)
                 .maybeSingle()
 
             if (existingMembership) {
+                if (existingMembership.team_id === teamId) {
+                    continue // Already in this team
+                }
                 const existingTeamName = (existingMembership.teams as any)?.team_name || 'another team'
+                const existingTeamCode = (existingMembership.teams as any)?.team_code
+                const teamDisplay = existingTeamCode ? `${existingTeamName} (${existingTeamCode})` : existingTeamName
+
                 return NextResponse.json({
-                    error: `User ${emailToAdd} is already a member of "${existingTeamName}".`
+                    error: `Student ${targetUser.name || targetUser.email} (${targetUser.email}) is already a member of "${teamDisplay}".`
                 }, { status: 400 })
             }
 
@@ -338,6 +388,11 @@ export async function PUT(
 
             if (addErr) {
                 return NextResponse.json({ error: addErr.message || 'Failed to add member to team' }, { status: 500 })
+            }
+
+            // If set as leader requested
+            if (mToAdd.is_leader) {
+                await supabase.from('teams').update({ leader_id: targetUser.id }).eq('id', teamId)
             }
         }
 
