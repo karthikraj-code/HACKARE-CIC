@@ -33,6 +33,15 @@ function setCachedUser(user: DbUser) {
     if (user.email) userCache.set(user.email.toLowerCase().trim(), entry)
 }
 
+export function invalidateUserCache(key?: string) {
+    if (!key) {
+        userCache.clear()
+        return
+    }
+    userCache.delete(key)
+    userCache.delete(key.toLowerCase().trim())
+}
+
 /**
  * Ensures the authenticated user exists in the public.users database table.
  * Uses in-memory caching to eliminate redundant DB queries on high concurrency.

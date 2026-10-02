@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { createAdminClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 import { ensureDbUser } from '@/lib/ensureUser'
+import { isVolunteerEmail } from '@/lib/attendanceStore'
 import crypto from 'crypto'
 
 export async function GET() {
@@ -17,9 +18,10 @@ export async function GET() {
         const supabase = await createAdminClient()
         const dbUser = await ensureDbUser(user)
         const isOrganizer = user.role === 'organizer' || dbUser?.role === 'organizer'
+        const isVolunteer = user.role === 'volunteer' || dbUser?.role === 'volunteer' || (user.email && await isVolunteerEmail(user.email))
 
-        if (!isOrganizer) {
-            return NextResponse.json({ error: 'Forbidden: Organizer access required' }, { status: 403 })
+        if (!isOrganizer && !isVolunteer) {
+            return NextResponse.json({ error: 'Forbidden: Organizer or Volunteer access required' }, { status: 403 })
         }
 
         const { data: teams, error } = await supabase

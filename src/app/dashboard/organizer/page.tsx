@@ -9,6 +9,7 @@ export default async function OrganizerDashboard() {
 
     const [
         { count: teamCount },
+        { count: participantCount },
         { data: rounds },
         { data: judgeAssignments },
         { data: scores },
@@ -17,6 +18,7 @@ export default async function OrganizerDashboard() {
         { data: allSubmissions },
     ] = await Promise.all([
         supabase.from('teams').select('*', { count: 'exact', head: true }),
+        supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'participant'),
         supabase.from('rounds').select('id, name, start_time, end_time, round_number').order('round_number'),
         supabase.from('judge_assignments').select('judge_id'),
         supabase.from('scores').select('team_id, round_id'),
@@ -48,11 +50,12 @@ export default async function OrganizerDashboard() {
     }, {}) || {}
 
     const stats = [
+        { label: 'Participants', value: participantCount ?? 0, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
         { label: 'Total Teams', value: teamCount ?? 0, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
         { label: 'Total Rounds', value: totalRounds, icon: Calendar, color: 'text-purple-600', bg: 'bg-purple-50' },
         { label: 'Active Now', value: activeRounds, icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50' },
         { label: 'Judges', value: uniqueJudges, icon: ShieldCheck, color: 'text-orange-600', bg: 'bg-orange-50' },
-        { label: 'Submissions Scored', value: scoredPairs, icon: Trophy, color: 'text-sky-600', bg: 'bg-sky-50' },
+        { label: 'Scored Pairs', value: scoredPairs, icon: Trophy, color: 'text-sky-600', bg: 'bg-sky-50' },
     ]
 
     return (
@@ -169,7 +172,10 @@ export default async function OrganizerDashboard() {
                         <CheckCircle2 size={18} className="text-green-500" />
                         Quick Actions
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <Link href="/dashboard/organizer/participants" className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-all text-sm font-bold text-gray-700">
+                            <Users size={16} className="text-indigo-500" /> Participants Roster
+                        </Link>
                         <Link href="/dashboard/organizer/rounds/create" className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-all text-sm font-bold text-gray-700">
                             <Calendar size={16} className="text-purple-500" /> Create Round
                         </Link>

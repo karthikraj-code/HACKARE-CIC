@@ -25,15 +25,19 @@ export const authOptions: NextAuthOptions = {
                 const emailLower = user.email.toLowerCase()
 
                 try {
+                    const { isVolunteerEmail } = await import('@/lib/attendanceStore')
+                    
                     // Concurrently fetch existing user data and whitelist status
                     const [
                         { data: userData },
                         { data: orgData },
-                        { data: judgeData }
+                        { data: judgeData },
+                        isVol
                     ] = await Promise.all([
                         supabase.from('users').select('id, role').eq('email', emailLower).maybeSingle(),
                         supabase.from('organizer_emails').select('email').eq('email', emailLower).maybeSingle(),
-                        supabase.from('judge_emails').select('email').eq('email', emailLower).maybeSingle()
+                        supabase.from('judge_emails').select('email').eq('email', emailLower).maybeSingle(),
+                        isVolunteerEmail(emailLower)
                     ])
 
                     let intendedRole = 'participant'
@@ -41,7 +45,13 @@ export const authOptions: NextAuthOptions = {
                         intendedRole = 'organizer'
                     } else if (judgeData) {
                         intendedRole = 'judge'
+                    } else if (isVol) {
+                        intendedRole = 'volunteer'
                     }
+
+                    // For DB user table, if intendedRole is volunteer and DB uses an enum without volunteer,
+                    // we insert as 'participant' in DB but keep intendedRole 'volunteer' in session
+                    const dbRoleToInsert = intendedRole === 'volunteer' ? 'participant' : intendedRole
 
                     if (!userData) {
                         const generatedId = crypto.randomUUID()
@@ -51,7 +61,7 @@ export const authOptions: NextAuthOptions = {
                                 id: generatedId,
                                 name: user.name || user.email.split('@')[0],
                                 email: emailLower,
-                                role: intendedRole
+                                role: dbRoleToInsert
                             }])
                             .select()
                             .single()
@@ -61,7 +71,7 @@ export const authOptions: NextAuthOptions = {
                             const { data: fallbackUser } = await supabase.from('users').select('id, role').eq('email', emailLower).maybeSingle()
                             if (fallbackUser) {
                                 user.id = fallbackUser.id
-                                ;(user as any).role = fallbackUser.role || intendedRole
+                                ;(user as any).role = intendedRole
                                 return true
                             }
                         }
@@ -69,12 +79,10 @@ export const authOptions: NextAuthOptions = {
                         user.id = newUserData?.id || generatedId
                         ;(user as any).role = intendedRole
                     } else {
-                        if (intendedRole !== 'participant' && userData.role !== intendedRole) {
+                        if (intendedRole !== 'participant' && intendedRole !== 'volunteer' && userData.role !== intendedRole) {
                             await supabase.from('users').update({ role: intendedRole }).eq('id', userData.id)
-                            ;(user as any).role = intendedRole
-                        } else {
-                            ;(user as any).role = userData.role || 'participant'
                         }
+                        ;(user as any).role = intendedRole
                         user.id = userData.id
                     }
                 } catch (e) {

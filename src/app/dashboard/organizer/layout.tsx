@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Flag, UserCheck, Settings, Award, FileText, Lightbulb } from 'lucide-react'
+import { LayoutDashboard, Flag, UserCheck, Users, HeartHandshake, Settings, Award, FileText, Lightbulb } from 'lucide-react'
 import SignOutButton from '@/components/SignOutButton'
 import DashboardRealtimeListener from '@/components/DashboardRealtimeListener'
 
@@ -57,6 +57,14 @@ export default async function OrganizerLayout({
                     <Link href="/dashboard/organizer/teams" className="flex items-center gap-3 px-3 py-2.5 rounded-md text-gray-700 hover:bg-gray-100 font-medium transition-colors">
                         <UserCheck size={20} />
                         Manage Teams
+                    </Link>
+                    <Link href="/dashboard/organizer/participants" className="flex items-center gap-3 px-3 py-2.5 rounded-md text-gray-700 hover:bg-gray-100 font-medium transition-colors">
+                        <Users size={20} />
+                        Participants
+                    </Link>
+                    <Link href="/dashboard/volunteer" className="flex items-center gap-3 px-3 py-2.5 rounded-md text-gray-700 hover:bg-emerald-50 hover:text-emerald-800 font-medium transition-colors">
+                        <HeartHandshake size={20} className="text-emerald-600" />
+                        Volunteer Attendance
                     </Link>
                     <Link href="/dashboard/organizer/leaderboard" className="flex items-center gap-3 px-3 py-2.5 rounded-md text-gray-700 hover:bg-gray-100 font-medium transition-colors">
                         <Award size={20} />

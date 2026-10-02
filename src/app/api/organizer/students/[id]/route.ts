@@ -3,92 +3,15 @@ import { authOptions } from "@/lib/auth"
 import { createAdminClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 import { ensureDbUser, invalidateUserCache } from '@/lib/ensureUser'
-import { isVolunteerEmail } from '@/lib/attendanceStore'
 
-export async function GET(request: Request) {
+export async function DELETE(
+    request: Request,
+    props: { params: Promise<{ id: string }> }
+) {
     try {
-        const session = await getServerSession(authOptions)
-        const user = session?.user as any
+        const params = await props.params
+        const studentId = params.id
 
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-
-        const supabase = await createAdminClient()
-        const dbUser = await ensureDbUser(user)
-        const isOrganizer = user.role === 'organizer' || dbUser?.role === 'organizer'
-        const isVolunteer = user.role === 'volunteer' || dbUser?.role === 'volunteer' || (user.email && await isVolunteerEmail(user.email))
-
-        if (!isOrganizer && !isVolunteer) {
-            return NextResponse.json({ error: 'Forbidden: Organizer or Volunteer access required' }, { status: 403 })
-        }
-
-        // Fetch all participants
-        const { data: participants, error: usersError } = await supabase
-            .from('users')
-            .select('id, name, email, reg_no, dept, section, year, role, created_at')
-            .eq('role', 'participant')
-            .order('created_at', { ascending: false })
-
-        if (usersError) {
-            console.error('Error fetching participants:', usersError)
-            return NextResponse.json({ error: usersError.message }, { status: 500 })
-        }
-
-        // Fetch all team memberships
-        const { data: memberships, error: memError } = await supabase
-            .from('team_members')
-            .select(`
-                user_id,
-                team_id,
-                teams (
-                    id,
-                    team_name,
-                    team_code,
-                    leader_id,
-                    selected_problem_id
-                )
-            `)
-
-        if (memError) {
-            console.error('Error fetching team memberships:', memError)
-            return NextResponse.json({ error: memError.message }, { status: 500 })
-        }
-
-        // Map memberships by user_id
-        const membershipMap = new Map<string, any>()
-        if (memberships) {
-            for (const m of memberships) {
-                membershipMap.set(m.user_id, {
-                    team_id: m.team_id,
-                    team: m.teams
-                })
-            }
-        }
-
-        const students = (participants || []).map(p => {
-            const memberInfo = membershipMap.get(p.id)
-            return {
-                ...p,
-                is_assigned: Boolean(memberInfo),
-                team_id: memberInfo?.team_id || null,
-                team: memberInfo?.team || null,
-                is_leader: memberInfo?.team ? memberInfo.team.leader_id === p.id : false
-            }
-        })
-
-        return NextResponse.json({
-            success: true,
-            students: students
-        })
-    } catch (error: any) {
-        console.error('Organizer GET students error:', error)
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
-    }
-}
-
-export async function DELETE(request: Request) {
-    try {
         const session = await getServerSession(authOptions)
         const user = session?.user as any
 
@@ -104,21 +27,8 @@ export async function DELETE(request: Request) {
             return NextResponse.json({ error: 'Forbidden: Organizer access required' }, { status: 403 })
         }
 
-        const url = new URL(request.url)
-        let studentId = url.searchParams.get('id') || url.searchParams.get('student_id') || url.searchParams.get('user_id')
-
-        // If not in query params, check JSON body
         if (!studentId) {
-            try {
-                const body = await request.json()
-                studentId = body.id || body.student_id || body.user_id || body.email
-            } catch {
-                // No JSON body
-            }
-        }
-
-        if (!studentId) {
-            return NextResponse.json({ error: 'Student ID or email is required for deletion' }, { status: 400 })
+            return NextResponse.json({ error: 'Student ID is required' }, { status: 400 })
         }
 
         // Safety check: Cannot delete own organizer account
@@ -180,7 +90,6 @@ export async function DELETE(request: Request) {
                 .maybeSingle()
 
             if (teamData && teamData.leader_id === resolvedUserId) {
-                // Find remaining members in this team
                 const { data: remainingMembers } = await supabase
                     .from('team_members')
                     .select('user_id')
@@ -215,7 +124,6 @@ export async function DELETE(request: Request) {
         try {
             await supabase.auth.admin.deleteUser(resolvedUserId)
         } catch (authError) {
-            // Optional: User might not have auth record or service key restrictions
             console.log('Notice: Could not delete from Supabase Auth admin (may not exist):', authError)
         }
 
@@ -230,13 +138,19 @@ export async function DELETE(request: Request) {
             message: `Participant "${studentName}" (${targetUser.email}) was permanently removed from the website and database.`
         })
     } catch (error: any) {
-        console.error('Organizer DELETE student error:', error)
+        console.error('Organizer DELETE student/[id] error:', error)
         return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
     }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(
+    request: Request,
+    props: { params: Promise<{ id: string }> }
+) {
     try {
+        const params = await props.params
+        const studentId = params.id
+
         const session = await getServerSession(authOptions)
         const user = session?.user as any
 
@@ -253,11 +167,7 @@ export async function PUT(request: Request) {
         }
 
         const body = await request.json()
-        const { id, name, email, reg_no, dept, section, year } = body
-
-        if (!id) {
-            return NextResponse.json({ error: 'Student ID is required' }, { status: 400 })
-        }
+        const { name, email, reg_no, dept, section, year } = body
 
         const updates: any = {}
         if (name !== undefined) updates.name = String(name).trim()
@@ -270,7 +180,7 @@ export async function PUT(request: Request) {
         const { data: updatedUser, error: updateErr } = await supabase
             .from('users')
             .update(updates)
-            .eq('id', id)
+            .eq('id', studentId)
             .select()
             .single()
 
@@ -278,7 +188,7 @@ export async function PUT(request: Request) {
             return NextResponse.json({ error: updateErr.message }, { status: 500 })
         }
 
-        invalidateUserCache(id)
+        invalidateUserCache(studentId)
         if (updatedUser?.email) invalidateUserCache(updatedUser.email)
 
         return NextResponse.json({
@@ -287,7 +197,7 @@ export async function PUT(request: Request) {
             student: updatedUser
         })
     } catch (error: any) {
-        console.error('Organizer PUT student error:', error)
+        console.error('Organizer PUT student/[id] error:', error)
         return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
     }
 }
