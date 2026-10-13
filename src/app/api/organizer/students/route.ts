@@ -23,12 +23,28 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Forbidden: Organizer or Volunteer access required' }, { status: 403 })
         }
 
-        // Fetch all participants
-        const { data: participants, error: usersError } = await supabase
+        // Fetch all participants (query category if column exists, fallback gracefully if not)
+        let participants: any[] | null = null
+        let usersError: any = null
+
+        const res = await supabase
             .from('users')
-            .select('id, name, email, reg_no, dept, section, year, role, created_at')
+            .select('id, name, email, reg_no, dept, section, year, role, created_at, category')
             .eq('role', 'participant')
             .order('created_at', { ascending: false })
+
+        if (res.error && (res.error.code === 'PGRST204' || res.error.message?.includes('category'))) {
+            const fallback = await supabase
+                .from('users')
+                .select('id, name, email, reg_no, dept, section, year, role, created_at')
+                .eq('role', 'participant')
+                .order('created_at', { ascending: false })
+            participants = fallback.data
+            usersError = fallback.error
+        } else {
+            participants = res.data
+            usersError = res.error
+        }
 
         if (usersError) {
             console.error('Error fetching participants:', usersError)
@@ -253,7 +269,30 @@ export async function PUT(request: Request) {
         }
 
         const body = await request.json()
-        const { id, name, email, reg_no, dept, section, year } = body
+
+        // Support bulk category updates
+        if (Array.isArray(body.students)) {
+            let updatedCount = 0
+            for (const s of body.students) {
+                if (s.id && s.category !== undefined) {
+                    const { error } = await supabase
+                        .from('users')
+                        .update({ category: String(s.category).trim() })
+                        .eq('id', s.id)
+                    if (!error) {
+                        updatedCount++
+                        invalidateUserCache(s.id)
+                    }
+                }
+            }
+            return NextResponse.json({
+                success: true,
+                message: `Successfully updated categories for ${updatedCount} participant(s) in database.`,
+                count: updatedCount
+            })
+        }
+
+        const { id, name, email, reg_no, dept, section, year, category } = body
 
         if (!id) {
             return NextResponse.json({ error: 'Student ID is required' }, { status: 400 })
@@ -266,6 +305,7 @@ export async function PUT(request: Request) {
         if (dept !== undefined) updates.dept = dept ? String(dept).trim() : null
         if (section !== undefined) updates.section = section ? String(section).trim() : null
         if (year !== undefined) updates.year = year ? String(year).trim() : null
+        if (category !== undefined) updates.category = category ? String(category).trim() : null
 
         const { data: updatedUser, error: updateErr } = await supabase
             .from('users')
@@ -290,4 +330,8 @@ export async function PUT(request: Request) {
         console.error('Organizer PUT student error:', error)
         return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
     }
+}
+
+export async function PATCH(request: Request) {
+    return PUT(request)
 }

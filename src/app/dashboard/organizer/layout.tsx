@@ -70,6 +70,10 @@ export default async function OrganizerLayout({
                         <Award size={20} />
                         Leaderboard Control
                     </Link>
+                    <Link href="/dashboard/organizer/certificates" className="flex items-center gap-3 px-3 py-2.5 rounded-md text-gray-700 hover:bg-amber-50 hover:text-amber-800 font-medium transition-colors">
+                        <Award size={20} className="text-amber-600" />
+                        Certificate Studio
+                    </Link>
                     <Link href="/dashboard/organizer/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-md text-gray-700 hover:bg-gray-100 font-medium transition-colors border-t border-gray-100 pt-3 mt-2">
                         <Settings size={20} />
                         Access Settings
