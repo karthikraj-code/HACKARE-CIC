@@ -8,7 +8,6 @@ import {
     Calendar, 
     Clock, 
     FileText, 
-    Sparkles, 
     Edit2, 
     CheckCircle2, 
     AlertCircle, 
@@ -130,17 +129,17 @@ export default function ManageRoundsClient({ initialRounds }: ManageRoundsClient
             
             {/* Header Banner */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 bg-white p-8 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600" />
+                <div className="absolute top-0 left-0 w-full h-1 bg-blue-600" />
                 <div>
-                    <h1 className="text-3xl font-black text-gray-900 mb-1">Manage Competition Rounds</h1>
-                    <p className="text-gray-600 text-sm">
+                    <h1 className="text-3xl font-black text-black mb-1">Manage Competition Rounds</h1>
+                    <p className="text-gray-700 text-sm">
                         Configure round schedules, adjust start and deadline timings, and monitor competition milestones ({rounds.length} rounds configured).
                     </p>
                 </div>
                 <div className="flex gap-3">
                     <Link
                         href="/dashboard/organizer/rounds/create"
-                        className="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-slate-800 transition-colors inline-flex items-center gap-2 shadow-sm text-sm"
+                        className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-colors inline-flex items-center gap-2 shadow-sm text-sm"
                     >
                         <PlusCircle size={18} />
                         Create New Round
@@ -249,12 +248,9 @@ export default function ManageRoundsClient({ initialRounds }: ManageRoundsClient
                                     </div>
 
                                     {maxScore > 0 && (
-                                        <div className="flex items-center justify-between text-blue-700 font-bold pt-1 border-t border-slate-200/60">
-                                            <div className="flex items-center gap-2">
-                                                <Sparkles size={14} className="text-blue-600" />
-                                                <span>Max Marks:</span>
-                                            </div>
-                                            <span>{maxScore} pts</span>
+                                        <div className="flex items-center justify-between text-black font-bold pt-1 border-t border-gray-100">
+                                            <span>Max Marks:</span>
+                                            <span className="text-blue-600">{maxScore} pts</span>
                                         </div>
                                     )}
                                 </div>

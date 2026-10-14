@@ -25,12 +25,12 @@ export default async function ParticipantTeamPage() {
     // If not in a team, show join/create options
     if (!membership) {
         return (
-            <div className="space-y-6 max-w-4xl mx-auto">
+            <div className="space-y-6 w-full max-w-5xl mx-auto">
                 <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm text-center">
                     <Users className="w-12 h-12 text-blue-600 mx-auto mb-4" />
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">You don't have a team yet</h2>
                     <p className="text-gray-600 mb-6 max-w-lg mx-auto text-sm">
-                        To participate in HACKARE, you need to form a team of up to 4 members. Create a new team or join an existing one using an invite code.
+                        To participate in GDG-KARE Event Management Platform, you need to form a team of up to 4 members. Create a new team or join an existing one using an invite code.
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -79,7 +79,7 @@ export default async function ParticipantTeamPage() {
     const memberCount = team?.team_members?.length || 0
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto pb-12">
+        <div className="space-y-6 w-full max-w-6xl mx-auto pb-12">
             <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
                 <div>
                     <div className="flex items-center gap-2.5 mb-1">
@@ -105,8 +105,8 @@ export default async function ParticipantTeamPage() {
             {/* Problem Statement Card in Team View */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
-                    <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                        <Lightbulb className="text-amber-500" size={20} />
+                    <h3 className="font-bold text-black flex items-center gap-2">
+                        <Lightbulb className="text-blue-600" size={20} />
                         Assigned Problem Statement
                     </h3>
                     <Link
@@ -118,18 +118,18 @@ export default async function ParticipantTeamPage() {
                 </div>
 
                 {selectedProblem ? (
-                    <div className="bg-emerald-50/60 p-4 rounded-xl border border-emerald-200 space-y-2">
+                    <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-200 space-y-2">
                         <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-black px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                            <span className="font-mono text-xs font-black px-2.5 py-0.5 rounded bg-blue-100 text-blue-800">
                                 {selectedProblem.statement_code}
                             </span>
-                            <span className="text-xs font-bold text-emerald-700">{selectedProblem.domain}</span>
-                            <span className="text-xs font-bold text-emerald-600 ml-auto flex items-center gap-1">
+                            <span className="text-xs font-bold text-blue-700">{selectedProblem.domain}</span>
+                            <span className="text-xs font-bold text-blue-600 ml-auto flex items-center gap-1">
                                 <CheckCircle2 size={14} /> Locked
                             </span>
                         </div>
                         <div className="flex justify-between items-start gap-2">
-                            <h4 className="font-extrabold text-gray-900 text-base">{selectedProblem.title}</h4>
+                            <h4 className="font-extrabold text-black text-base">{selectedProblem.title}</h4>
                             <CopyButton
                                 text={`${selectedProblem.statement_code}: ${selectedProblem.title}\n\n${selectedProblem.description}`}
                                 label="Copy"
@@ -137,20 +137,20 @@ export default async function ParticipantTeamPage() {
                                 className="shrink-0"
                             />
                         </div>
-                        <p className="text-xs text-gray-700 whitespace-pre-line leading-relaxed mt-2 pt-2 border-t border-emerald-100">{selectedProblem.description}</p>
+                        <p className="text-xs text-gray-800 whitespace-pre-line leading-relaxed mt-2 pt-2 border-t border-blue-100">{selectedProblem.description}</p>
                     </div>
                 ) : (
-                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 text-amber-900 text-sm flex items-center justify-between">
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-black text-sm flex items-center justify-between">
                         <div>
                             <p className="font-bold">No Problem Statement Selected</p>
-                            <p className="text-xs text-amber-800 mt-0.5">
+                            <p className="text-xs text-gray-600 mt-0.5">
                                 {isLeader ? 'Please choose a problem statement for your team.' : 'Waiting for Team Leader to lock a problem statement.'}
                             </p>
                         </div>
                         {isLeader && (
                             <Link
                                 href="/dashboard/participant/problem-statement"
-                                className="bg-amber-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-amber-700 transition-colors shadow-sm whitespace-nowrap ml-4"
+                                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap ml-4"
                             >
                                 Select Now &rarr;
                             </Link>

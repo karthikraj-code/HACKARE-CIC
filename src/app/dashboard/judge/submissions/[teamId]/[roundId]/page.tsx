@@ -16,7 +16,6 @@ import {
     Lightbulb, 
     ExternalLink,
     Trophy,
-    Sparkles,
     Check,
     SlidersHorizontal,
     Info
@@ -189,16 +188,16 @@ export default function GradeSubmissionPage() {
 
             {/* Problem Statement Card */}
             {selectedProblem && (
-                <div className="bg-emerald-50/90 border border-emerald-200 p-6 rounded-3xl shadow-xs space-y-3">
+                <div className="bg-blue-50/90 border border-blue-200 p-6 rounded-3xl shadow-xs space-y-3">
                     <div className="flex flex-wrap justify-between items-center gap-2">
                         <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            <span className="font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 border border-blue-300">
                                 {selectedProblem.statement_code}
                             </span>
-                            <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider bg-white/80 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                            <span className="text-xs font-bold text-blue-800 uppercase tracking-wider bg-white/80 px-2.5 py-0.5 rounded-full border border-blue-200">
                                 {selectedProblem.domain}
                             </span>
-                            <span className="text-xs font-bold text-emerald-700 ml-1">
+                            <span className="text-xs font-bold text-blue-700 ml-1">
                                 Assigned Problem Statement
                             </span>
                         </div>
@@ -212,18 +211,18 @@ export default function GradeSubmissionPage() {
                             <Link
                                 href="/dashboard/judge/problem-statements"
                                 target="_blank"
-                                className="text-xs font-bold text-emerald-800 hover:text-emerald-950 underline flex items-center gap-1"
+                                className="text-xs font-bold text-blue-800 hover:text-blue-950 underline flex items-center gap-1"
                             >
                                 All Statements Directory <ExternalLink size={12} />
                             </Link>
                         </div>
                     </div>
 
-                    <h3 className="text-base font-black text-gray-900 leading-snug">
+                    <h3 className="text-base font-black text-black leading-snug">
                         {selectedProblem.title}
                     </h3>
                     
-                    <div className="p-4 bg-white/80 rounded-2xl border border-emerald-200/70 text-xs text-gray-700 leading-relaxed whitespace-pre-line font-medium max-h-48 overflow-y-auto">
+                    <div className="p-4 bg-white/80 rounded-2xl border border-blue-200/70 text-xs text-gray-800 leading-relaxed whitespace-pre-line font-medium max-h-48 overflow-y-auto">
                         {selectedProblem.description}
                     </div>
                 </div>
@@ -281,22 +280,22 @@ export default function GradeSubmissionPage() {
                                             <div className="flex flex-wrap gap-2 pt-1">
                                                 {fields.text.enabled && (
                                                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 text-[11px] font-bold border border-blue-200">
-                                                        📝 {fields.text.label || 'Text Solution'} {fields.text.required ? '(Mandatory)' : '(Optional)'}
+                                                        {fields.text.label || 'Text Solution'} {fields.text.required ? '(Mandatory)' : '(Optional)'}
                                                     </span>
                                                 )}
                                                 {fields.live_demo.enabled && (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200">
-                                                        🎥 {fields.live_demo.label || 'Live Demo'} {fields.live_demo.required ? '(Mandatory)' : '(Optional)'}
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 text-[11px] font-bold border border-blue-200">
+                                                        {fields.live_demo.label || 'Live Demo'} {fields.live_demo.required ? '(Mandatory)' : '(Optional)'}
                                                     </span>
                                                 )}
                                                 {fields.github.enabled && (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 text-[11px] font-bold border border-slate-300">
-                                                        💻 {fields.github.label || 'GitHub Repo'} {fields.github.required ? '(Mandatory)' : '(Optional)'}
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100 text-gray-800 text-[11px] font-bold border border-gray-300">
+                                                        {fields.github.label || 'GitHub Repo'} {fields.github.required ? '(Mandatory)' : '(Optional)'}
                                                     </span>
                                                 )}
                                                 {fields.ppt.enabled && (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-50 text-purple-800 text-[11px] font-bold border border-purple-200">
-                                                        📊 {fields.ppt.label || 'Presentation'} {fields.ppt.required ? '(Mandatory)' : '(Optional)'}
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 text-[11px] font-bold border border-blue-200">
+                                                        {fields.ppt.label || 'Presentation'} {fields.ppt.required ? '(Mandatory)' : '(Optional)'}
                                                     </span>
                                                 )}
                                             </div>
@@ -304,13 +303,13 @@ export default function GradeSubmissionPage() {
 
                                         {/* 1. Presentation Slides Link */}
                                         {submission.link && (
-                                            <div className="bg-purple-50/60 border border-purple-100 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                            <div className="bg-blue-50/60 border border-blue-100 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                    <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0">
+                                                    <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
                                                         <FileText size={20} />
                                                     </div>
                                                     <div className="min-w-0 flex-1">
-                                                        <p className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">
+                                                        <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
                                                             {fields.ppt.label || 'Presentation / Slides Link'}
                                                         </p>
                                                         <p className="text-sm font-black text-gray-900 truncate">{submission.link}</p>
@@ -320,7 +319,7 @@ export default function GradeSubmissionPage() {
                                                     href={submission.link.startsWith('http') ? submission.link : `https://${submission.link}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="px-5 py-2.5 bg-purple-600 text-white rounded-xl text-xs font-bold hover:bg-purple-700 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap"
+                                                    className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
                                                 >
                                                     Open Slides <ExternalLink size={14} />
                                                 </a>
@@ -345,7 +344,7 @@ export default function GradeSubmissionPage() {
                                                     href={submission.github_url.startsWith('http') ? submission.github_url : `https://${submission.github_url}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="px-5 py-2.5 bg-white text-slate-900 rounded-xl text-xs font-black hover:bg-gray-100 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap"
+                                                    className="w-full sm:w-auto px-5 py-2.5 bg-white text-slate-900 rounded-xl text-xs font-black hover:bg-gray-100 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
                                                 >
                                                     Inspect Code <ExternalLink size={14} />
                                                 </a>
@@ -354,13 +353,13 @@ export default function GradeSubmissionPage() {
 
                                         {/* 3. Live Demo / Deployed Link / Video URL */}
                                         {submission.file_url && (
-                                            <div className="bg-emerald-50/60 border border-emerald-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                            <div className="bg-blue-50/60 border border-blue-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                    <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                                                    <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
                                                         <Video size={20} />
                                                     </div>
                                                     <div className="min-w-0 flex-1">
-                                                        <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                                                        <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">
                                                             {fields.live_demo.label || 'Live App / Demo Video Link'}
                                                         </p>
                                                         <p className="text-sm font-black text-gray-900 truncate">{submission.file_url}</p>
@@ -370,7 +369,7 @@ export default function GradeSubmissionPage() {
                                                     href={submission.file_url.startsWith('http') ? submission.file_url : `https://${submission.file_url}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap"
+                                                    className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
                                                 >
                                                     Open Link <ExternalLink size={14} />
                                                 </a>
@@ -458,19 +457,8 @@ export default function GradeSubmissionPage() {
                                                 let badgeStyles = "bg-gray-100 text-gray-700"
 
                                                 if (isSelected) {
-                                                    if (tier.name === 'Excellent') {
-                                                        cardStyles = "border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-500/20"
-                                                        badgeStyles = "bg-emerald-600 text-white"
-                                                    } else if (tier.name === 'Good') {
-                                                        cardStyles = "border-blue-500 bg-blue-50 text-blue-950 ring-2 ring-blue-500/20"
-                                                        badgeStyles = "bg-blue-600 text-white"
-                                                    } else if (tier.name === 'Fair') {
-                                                        cardStyles = "border-amber-500 bg-amber-50 text-amber-950 ring-2 ring-amber-500/20"
-                                                        badgeStyles = "bg-amber-600 text-white"
-                                                    } else {
-                                                        cardStyles = "border-rose-500 bg-rose-50 text-rose-950 ring-2 ring-rose-500/20"
-                                                        badgeStyles = "bg-rose-600 text-white"
-                                                    }
+                                                    cardStyles = "border-blue-600 bg-blue-50 text-blue-950 ring-2 ring-blue-600/20"
+                                                    badgeStyles = "bg-blue-600 text-white"
                                                 }
 
                                                 return (
@@ -513,7 +501,7 @@ export default function GradeSubmissionPage() {
 
                         {/* Error & Success Messages */}
                         {error && <div className="p-3 bg-red-50 text-red-700 text-xs font-bold rounded-xl border border-red-200">{error}</div>}
-                        {success && <div className="p-3 bg-emerald-50 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200">{success}</div>}
+                        {success && <div className="p-3 bg-blue-50 text-blue-800 text-xs font-bold rounded-xl border border-blue-200">{success}</div>}
 
                         <button
                             type="submit"

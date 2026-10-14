@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
 import "./globals.css";
 
-const roboto = Roboto({
-  weight: ['300', '400', '500', '700'],
-  subsets: ["latin"],
-  variable: "--font-roboto",
-});
-
 export const metadata: Metadata = {
-  title: "HACKARE",
-  description: "Platform for the HACKARE Hackathon",
+  title: "GDG-KARE Event Management Platform",
+  description: "Official event and competition management platform for Google Developer Groups On Campus at Kalasalingam Academy of Research and Education.",
+  icons: {
+    icon: "/gdg-logo.png",
+  },
 };
-
 
 export default function RootLayout({
   children,
@@ -21,7 +16,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${roboto.variable} font-sans antialiased bg-background text-foreground`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.cdnfonts.com" />
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+        <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/google-sans" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mortezaom/google-sans-cdn@master/fonts.css" />
+      </head>
+      <body className="font-sans antialiased bg-background text-foreground">
         {children}
       </body>
     </html>

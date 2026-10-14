@@ -122,7 +122,7 @@ export default function OrganizerLeaderboardPage() {
         const url = URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.setAttribute('href', url)
-        link.setAttribute('download', `hackare-leaderboard-${new Date().toISOString().split('T')[0]}.csv`)
+        link.setAttribute('download', `gdg-kare-leaderboard-${new Date().toISOString().split('T')[0]}.csv`)
 
         document.body.appendChild(link)
         link.click()
@@ -142,22 +142,22 @@ export default function OrganizerLeaderboardPage() {
         <div className="space-y-6 max-w-7xl mx-auto pb-16">
             {/* Header */}
             <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 to-indigo-600" />
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-600" />
                 <div>
-                    <h2 className="text-3xl font-extrabold text-gray-900 mb-1 flex items-center gap-2">
-                        <Trophy className="text-amber-500" /> Leaderboard Control
+                    <h2 className="text-3xl font-extrabold text-black mb-1 flex items-center gap-2">
+                        <Trophy className="text-blue-600" /> Leaderboard Control
                     </h2>
                     <p className="text-gray-600 text-sm">Review final standings for Round 1 (PPT) & Round 2 (Code Demo) and publish results.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <button onClick={exportCSV} className="bg-white text-gray-700 border border-gray-300 px-4 py-2.5 rounded-xl font-bold hover:bg-gray-50 flex items-center gap-2 transition-colors shadow-sm text-xs">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                    <button onClick={exportCSV} className="w-full sm:w-auto bg-white text-gray-700 border border-gray-300 px-4 py-2.5 rounded-xl font-bold hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors shadow-sm text-xs cursor-pointer">
                         <Download size={15} /> Export CSV
                     </button>
                     <button
                         onClick={handleToggle}
                         disabled={toggling}
-                        className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-colors shadow-sm disabled:opacity-50 text-xs ${isReleased
-                            ? 'bg-slate-100 text-slate-700 border border-slate-300 hover:bg-slate-200'
+                        className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-sm disabled:opacity-50 text-xs cursor-pointer ${isReleased
+                            ? 'bg-gray-100 text-gray-800 border border-gray-300 hover:bg-gray-200'
                             : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                     >
                         {isReleased ? <><EyeOff size={15} /> Hide from Participants</> : <><Eye size={15} /> Publish to Participants</>}
@@ -166,8 +166,8 @@ export default function OrganizerLeaderboardPage() {
             </div>
 
             {/* Status Banner */}
-            <div className={`px-5 py-3 rounded-xl text-center font-bold text-xs border ${isReleased ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
-                {isReleased ? '✓ Leaderboard is PUBLIC — all participants can see the rankings.' : '⚠ Leaderboard is HIDDEN — visible only to organizers and judges.'}
+            <div className={`px-5 py-3 rounded-xl text-center font-bold text-xs border ${isReleased ? 'bg-blue-50 text-blue-900 border-blue-200' : 'bg-gray-100 text-gray-800 border-gray-300'}`}>
+                {isReleased ? 'Leaderboard is PUBLIC — all participants can see the rankings.' : 'Leaderboard is HIDDEN — visible only to organizers and judges.'}
             </div>
 
             {/* Main Leaderboard Table */}
@@ -191,13 +191,13 @@ export default function OrganizerLeaderboardPage() {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {leaderboard.map((team, idx) => (
-                                <tr key={team.id} className={`hover:bg-slate-50/60 transition-colors ${idx === 0 ? 'bg-amber-50/30' : ''}`}>
+                                <tr key={team.id} className="hover:bg-slate-50/60 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm ${
-                                            idx === 0 ? 'bg-amber-100 text-amber-800 ring-2 ring-amber-300' :
-                                            idx === 1 ? 'bg-slate-200 text-slate-700 ring-2 ring-slate-300' :
-                                            idx === 2 ? 'bg-amber-800/10 text-amber-900 ring-2 ring-amber-800/20' :
-                                            'bg-gray-100 text-gray-500'}`}>
+                                            idx === 0 ? 'bg-blue-600 text-white' :
+                                            idx === 1 ? 'bg-blue-100 text-blue-800' :
+                                            idx === 2 ? 'bg-blue-50 text-blue-700' :
+                                            'bg-gray-100 text-gray-600'}`}>
                                             {idx + 1}
                                         </div>
                                     </td>
@@ -271,7 +271,7 @@ export default function OrganizerLeaderboardPage() {
                                                         <td className="px-6 py-3 text-center text-gray-400 text-xs">{team.hasScore ? team.judgeCount : '—'}</td>
                                                         <td className="px-6 py-3 text-center">
                                                             {team.hasScore ? (
-                                                                <span className="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">
+                                                                <span className="inline-flex items-center gap-1 text-xs text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-bold">
                                                                     <CheckCircle size={11} /> Scored
                                                                 </span>
                                                             ) : (

@@ -8,7 +8,6 @@ import {
     Users, 
     CheckCircle2, 
     Layers, 
-    Sparkles, 
     FileText 
 } from 'lucide-react'
 import CopyButton from '@/components/CopyButton'
@@ -92,10 +91,10 @@ export default function JudgeProblemStatementsPage() {
             {/* Header */}
             <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider mb-2 border border-emerald-200">
-                        <Lightbulb size={14} className="text-amber-500" /> Judge Reference Portal
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider mb-2 border border-blue-200">
+                        <Lightbulb size={14} className="text-blue-600" /> Judge Reference Portal
                     </div>
-                    <h1 className="text-2xl font-black text-gray-900">Problem Statements Directory</h1>
+                    <h1 className="text-2xl font-black text-black">Problem Statements Directory</h1>
                     <p className="text-xs text-gray-500 mt-1">
                         Comprehensive catalogue of all competition problem statements and team selections for evaluation reference.
                     </p>
@@ -181,7 +180,7 @@ export default function JudgeProblemStatementsPage() {
                                             {p.statement_code}
                                         </span>
                                         {p.domain && (
-                                            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                                            <span className="text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
                                                 {p.domain}
                                             </span>
                                         )}

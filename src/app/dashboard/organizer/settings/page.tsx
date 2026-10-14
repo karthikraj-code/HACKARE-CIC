@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS public.attendance_records (
                                 onChange={e => setNewEmail(e.target.value)}
                                 required
                                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                                placeholder="goole@gmail.com"
+                                placeholder="google@gmail.com"
                             />
                         </div>
                         <div>

@@ -66,10 +66,10 @@ export default async function OrganizerSubmissionsPage() {
     return (
         <div className="space-y-6 max-w-7xl mx-auto pb-16">
             <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 to-indigo-600" />
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-600" />
                 <div>
-                    <h2 className="text-3xl font-extrabold text-gray-900 mb-1">Participant Submissions Overview</h2>
-                    <p className="text-gray-500 font-medium text-sm max-w-2xl">
+                    <h2 className="text-3xl font-extrabold text-black mb-1">Participant Submissions Overview</h2>
+                    <p className="text-gray-600 font-medium text-sm max-w-2xl">
                         Comprehensive overview of all {teams?.length || 0} teams across competition rounds.
                     </p>
                 </div>
@@ -81,11 +81,11 @@ export default async function OrganizerSubmissionsPage() {
                             <p className="text-xl font-black text-blue-900 leading-none">{teams?.length || 0}</p>
                         </div>
                     </div>
-                    <div className="bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 flex items-center gap-3">
-                        <FileText size={20} className="text-emerald-600" />
+                    <div className="bg-blue-50 px-4 py-2 rounded-xl border border-blue-100 flex items-center gap-3">
+                        <FileText size={20} className="text-blue-600" />
                         <div className="text-right">
-                            <p className="text-[10px] text-emerald-600 font-black uppercase tracking-widest">Submissions</p>
-                            <p className="text-xl font-black text-emerald-900 leading-none">{submissions?.length || 0}</p>
+                            <p className="text-[10px] text-blue-600 font-black uppercase tracking-widest">Submissions</p>
+                            <p className="text-xl font-black text-blue-900 leading-none">{submissions?.length || 0}</p>
                         </div>
                     </div>
                 </div>
@@ -117,22 +117,22 @@ export default async function OrganizerSubmissionsPage() {
                                     </div>
 
                                     {ps ? (
-                                        <div className="flex items-center gap-2 mt-1 text-xs text-blue-300 font-semibold">
-                                            <Lightbulb size={14} className="text-amber-400" />
-                                            <span>{ps.statement_code}: {ps.title}</span>
-                                            <span className="bg-white/10 text-white px-2 py-0.2 rounded text-[10px] uppercase tracking-wider">{ps.domain}</span>
-                                        </div>
-                                    ) : (
-                                        <p className="text-xs text-amber-300 mt-1 font-semibold">Problem Statement: Pending Selection</p>
-                                    )}
-                                </div>
+                                         <div className="flex items-center gap-2 mt-1 text-xs text-blue-200 font-semibold">
+                                             <Lightbulb size={14} className="text-blue-400" />
+                                             <span>{ps.statement_code}: {ps.title}</span>
+                                             <span className="bg-white/10 text-white px-2 py-0.2 rounded text-[10px] uppercase tracking-wider">{ps.domain}</span>
+                                         </div>
+                                     ) : (
+                                         <p className="text-xs text-gray-400 mt-1 font-semibold">Problem Statement: Pending Selection</p>
+                                     )}
+                                 </div>
 
-                                <div className="text-right">
-                                    <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest block mb-0.5">Rounds Submitted</span>
-                                    <span className="text-base font-black text-white">
-                                        {allRounds?.filter(r => matrix[team.id][r.id].submission).length} / {allRounds?.length || 2}
-                                    </span>
-                                </div>
+                                 <div className="text-right">
+                                     <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest block mb-0.5">Rounds Submitted</span>
+                                     <span className="text-base font-black text-white">
+                                         {allRounds?.filter(r => matrix[team.id][r.id].submission).length} / {allRounds?.length || 2}
+                                     </span>
+                                 </div>
                             </div>
 
                             <div className="divide-y divide-gray-100">
@@ -162,16 +162,16 @@ export default async function OrganizerSubmissionsPage() {
                                                 <div className="flex flex-wrap items-center gap-6">
                                                     {hasSubmission ? (
                                                         <div className="flex items-center gap-2">
-                                                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                                            <span className="text-xs font-bold text-emerald-600">Submitted</span>
-                                                            <span suppressHydrationWarning className="text-xs text-gray-400 font-medium">
+                                                            <div className="w-2 h-2 rounded-full bg-blue-600" />
+                                                            <span className="text-xs font-bold text-blue-700">Submitted</span>
+                                                            <span suppressHydrationWarning className="text-xs text-gray-500 font-medium">
                                                                 {formatDateTime(data.submission.submitted_at)}
                                                             </span>
                                                         </div>
                                                     ) : (
                                                         <div className="flex items-center gap-2">
-                                                            <div className={`w-2 h-2 rounded-full ${deadlinePassed ? 'bg-red-500' : 'bg-amber-400'}`} />
-                                                            <span className={`text-xs font-bold ${deadlinePassed ? 'text-red-600' : 'text-amber-600'}`}>
+                                                            <div className={`w-2 h-2 rounded-full ${deadlinePassed ? 'bg-red-500' : 'bg-gray-400'}`} />
+                                                            <span className={`text-xs font-bold ${deadlinePassed ? 'text-red-600' : 'text-gray-600'}`}>
                                                                 {deadlinePassed ? 'Missing Submission (Deadline Passed)' : 'Awaiting Submission'}
                                                             </span>
                                                         </div>
@@ -183,7 +183,7 @@ export default async function OrganizerSubmissionsPage() {
                                                             <span className="text-xs font-black text-blue-700 uppercase tracking-tight">Score: {data.score.score} / {maxScore || 100}</span>
                                                         </div>
                                                     ) : hasSubmission ? (
-                                                        <div className="flex items-center gap-2 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 text-amber-700">
+                                                        <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full border border-gray-200 text-gray-700">
                                                             <Clock size={14} />
                                                             <span className="text-xs font-bold uppercase tracking-tight italic">Pending Judge Evaluation</span>
                                                         </div>
@@ -195,7 +195,7 @@ export default async function OrganizerSubmissionsPage() {
                                                 {hasSubmission ? (
                                                     <Link
                                                         href={`/dashboard/organizer/submissions/${team.id}/${round.id}`}
-                                                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-blue-600 transition-colors shadow-xs"
+                                                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-black text-white rounded-xl font-bold text-xs hover:bg-blue-600 transition-colors shadow-xs cursor-pointer"
                                                     >
                                                         View Details <ArrowRight size={15} />
                                                     </Link>

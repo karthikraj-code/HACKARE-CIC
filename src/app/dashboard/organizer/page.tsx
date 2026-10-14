@@ -50,33 +50,33 @@ export default async function OrganizerDashboard() {
     }, {}) || {}
 
     const stats = [
-        { label: 'Participants', value: participantCount ?? 0, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        { label: 'Participants', value: participantCount ?? 0, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
         { label: 'Total Teams', value: teamCount ?? 0, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { label: 'Total Rounds', value: totalRounds, icon: Calendar, color: 'text-purple-600', bg: 'bg-purple-50' },
-        { label: 'Active Now', value: activeRounds, icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50' },
-        { label: 'Judges', value: uniqueJudges, icon: ShieldCheck, color: 'text-orange-600', bg: 'bg-orange-50' },
-        { label: 'Scored Pairs', value: scoredPairs, icon: Trophy, color: 'text-sky-600', bg: 'bg-sky-50' },
+        { label: 'Total Rounds', value: totalRounds, icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { label: 'Active Now', value: activeRounds, icon: CheckCircle2, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { label: 'Judges', value: uniqueJudges, icon: ShieldCheck, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { label: 'Scored Pairs', value: scoredPairs, icon: Trophy, color: 'text-blue-600', bg: 'bg-blue-50' },
     ]
 
     return (
         <div className="space-y-6">
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <h2 className="text-2xl font-bold text-gray-900 mb-1">Organizer Dashboard</h2>
-                <p className="text-gray-500 text-sm">
+                <h2 className="text-2xl font-bold text-black mb-1">Organizer Dashboard</h2>
+                <p className="text-gray-700 text-sm">
                     Manage the hackathon, create rounds, assign judges, and release the leaderboard.
                 </p>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                 {stats.map(stat => (
                     <div key={stat.label} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3">
                         <div className={`w-9 h-9 rounded-lg ${stat.bg} flex items-center justify-center`}>
                             <stat.icon size={18} className={stat.color} />
                         </div>
                         <div>
-                            <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">{stat.label}</div>
+                            <div className="text-2xl font-bold text-black">{stat.value}</div>
+                            <div className="text-xs text-gray-600 mt-0.5">{stat.label}</div>
                         </div>
                     </div>
                 ))}
@@ -87,8 +87,8 @@ export default async function OrganizerDashboard() {
                 {/* Round Analytics breakdown */}
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                            <Trophy size={18} className="text-sky-500" />
+                        <h3 className="font-bold text-black flex items-center gap-2">
+                            <Trophy size={18} className="text-blue-600" />
                             Participation Analytics
                         </h3>
                     </div>
@@ -101,30 +101,30 @@ export default async function OrganizerDashboard() {
                             return (
                                 <div key={r.id} className="space-y-1.5">
                                     <div className="flex justify-between items-center text-xs">
-                                        <span className="font-bold text-gray-700 truncate max-w-[140px]">{r.name}</span>
-                                        <span className="font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                                        <span className="font-bold text-black truncate max-w-[140px]">{r.name}</span>
+                                        <span className="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
                                             {submittedCount} / {totalTeams}
                                         </span>
                                     </div>
-                                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden border border-gray-50 shadow-inner">
+                                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden border border-gray-100">
                                         <div 
-                                            className={`h-full transition-all duration-1000 ${percentage === 100 ? 'bg-emerald-500' : 'bg-blue-500'}`} 
+                                            className="h-full transition-all duration-1000 bg-blue-600" 
                                             style={{ width: `${percentage}%` }}
                                         />
                                     </div>
                                 </div>
                             )
                         }) : (
-                            <p className="text-sm text-gray-400">No data available.</p>
+                            <p className="text-sm text-gray-500">No data available.</p>
                         )}
                     </div>
                 </div>
 
                 {/* Live Submission Feed */}
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm lg:col-span-2">
-                    <div className="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
-                        <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                            <FileText size={18} className="text-blue-500" />
+                    <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                        <h3 className="font-bold text-black flex items-center gap-2">
+                            <FileText size={18} className="text-blue-600" />
                             Live Submission Feed
                         </h3>
                         <Link href="/dashboard/organizer/submissions" className="text-xs bg-blue-600 text-white px-3 py-1 rounded-full font-bold hover:bg-blue-700 transition-colors">
@@ -133,20 +133,20 @@ export default async function OrganizerDashboard() {
                     </div>
                     <div className="space-y-3">
                         {recentSubmissions && recentSubmissions.length > 0 ? recentSubmissions.map((sub: any) => (
-                            <div key={sub.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 hover:border-blue-200 transition-colors">
+                            <div key={sub.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 hover:border-blue-200 transition-colors">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center font-bold text-slate-500 text-xs">
+                                    <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center font-bold text-black text-xs">
                                         {(sub.teams?.team_name || 'T').charAt(0)}
                                     </div>
                                     <div>
-                                        <p className="text-sm font-bold text-gray-900">{sub.teams?.team_name}</p>
-                                        <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">
+                                        <p className="text-sm font-bold text-black">{sub.teams?.team_name}</p>
+                                        <p className="text-[10px] text-gray-600 font-medium uppercase tracking-wider">
                                             Round {sub.rounds?.round_number}: {sub.rounds?.name}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <span suppressHydrationWarning className="text-[10px] font-bold text-gray-400 block mb-1">
+                                    <span suppressHydrationWarning className="text-[10px] font-bold text-gray-500 block mb-1">
                                         {formatTime(sub.submitted_at)}
                                     </span>
                                     <Link 
@@ -159,8 +159,8 @@ export default async function OrganizerDashboard() {
                             </div>
                         )) : (
                             <div className="text-center py-10">
-                                <FileText size={40} className="mx-auto text-gray-200 mb-2" />
-                                <p className="text-sm text-gray-400 font-medium">No submissions recorded yet.</p>
+                                <FileText size={40} className="mx-auto text-gray-300 mb-2" />
+                                <p className="text-sm text-gray-500 font-medium">No submissions recorded yet.</p>
                             </div>
                         )}
                     </div>
@@ -168,25 +168,25 @@ export default async function OrganizerDashboard() {
 
                 {/* Quick actions */}
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm lg:col-span-3">
-                    <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <CheckCircle2 size={18} className="text-green-500" />
+                    <h3 className="font-bold text-black mb-4 flex items-center gap-2">
+                        <CheckCircle2 size={18} className="text-blue-600" />
                         Quick Actions
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                        <Link href="/dashboard/organizer/participants" className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-all text-sm font-bold text-gray-700">
-                            <Users size={16} className="text-indigo-500" /> Participants Roster
+                        <Link href="/dashboard/organizer/participants" className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-all text-sm font-bold text-black">
+                            <Users size={16} className="text-blue-600" /> Participants Roster
                         </Link>
-                        <Link href="/dashboard/organizer/rounds/create" className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-all text-sm font-bold text-gray-700">
-                            <Calendar size={16} className="text-purple-500" /> Create Round
+                        <Link href="/dashboard/organizer/rounds/create" className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-all text-sm font-bold text-black">
+                            <Calendar size={16} className="text-blue-600" /> Create Round
                         </Link>
-                        <Link href="/dashboard/organizer/teams" className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-all text-sm font-bold text-gray-700">
-                            <ShieldCheck size={16} className="text-orange-500" /> Assign Judges
+                        <Link href="/dashboard/organizer/teams" className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-all text-sm font-bold text-black">
+                            <ShieldCheck size={16} className="text-blue-600" /> Assign Judges
                         </Link>
-                        <Link href="/dashboard/organizer/leaderboard" className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-all text-sm font-bold text-gray-700">
-                            <Trophy size={16} className="text-sky-500" />
-                            Leaderboard: {isLeaderboardReleased ? <span className="text-green-600">Public</span> : <span className="text-amber-600">Hidden</span>}
+                        <Link href="/dashboard/organizer/leaderboard" className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-all text-sm font-bold text-black">
+                            <Trophy size={16} className="text-blue-600" />
+                            Leaderboard: {isLeaderboardReleased ? <span className="text-blue-600">Public</span> : <span className="text-gray-600">Hidden</span>}
                         </Link>
-                        <Link href="/dashboard/organizer/submissions" className="flex items-center gap-3 p-3 rounded-lg border border-blue-600 bg-blue-600 text-white hover:bg-blue-700 transition-all text-sm font-bold shadow-md shadow-blue-100">
+                        <Link href="/dashboard/organizer/submissions" className="flex items-center gap-3 p-3 rounded-lg border border-blue-600 bg-blue-600 text-white hover:bg-blue-700 transition-all text-sm font-bold shadow-sm">
                             <FileText size={16} /> View Submissions
                         </Link>
                     </div>

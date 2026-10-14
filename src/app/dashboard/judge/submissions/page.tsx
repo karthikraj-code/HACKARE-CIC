@@ -95,10 +95,10 @@ export default async function JudgeSubmissionsPage() {
     return (
         <div className="space-y-6 max-w-5xl mx-auto pb-16">
             <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 to-indigo-600" />
-                <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Review & Score Submissions</h2>
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-600" />
+                <h2 className="text-3xl font-extrabold text-black mb-2">Review & Score Submissions</h2>
                 <p className="text-gray-600 text-sm">
-                    You are assigned to evaluate <strong className="text-gray-900">{teams?.length} teams</strong> across the 2 competition rounds.
+                    You are assigned to evaluate <strong className="text-black">{teams?.length} teams</strong> across the competition rounds.
                 </p>
             </div>
 
@@ -114,7 +114,7 @@ export default async function JudgeSubmissionsPage() {
                                     <h3 className="text-xl font-extrabold text-white">{team.team_name}</h3>
                                     {ps ? (
                                         <div className="flex items-center gap-2 mt-1 text-xs text-blue-300 font-semibold">
-                                            <Lightbulb size={14} className="text-amber-400" />
+                                            <Lightbulb size={14} className="text-blue-400" />
                                             <span>{ps.statement_code}: {ps.title}</span>
                                             <span className="bg-white/10 text-white px-2 py-0.2 rounded text-[10px] uppercase tracking-wider">{ps.domain}</span>
                                         </div>
@@ -136,10 +136,10 @@ export default async function JudgeSubmissionsPage() {
 
                                     const subCfg = normalizeSubmissionConfig(round.submission_type, round.round_number, round.name)
                                     const subLabels = []
-                                    if (subCfg.fields.text.enabled) subLabels.push('📝 ' + (subCfg.fields.text.label || 'Text'))
-                                    if (subCfg.fields.live_demo.enabled) subLabels.push('🎥 ' + (subCfg.fields.live_demo.label || 'Live Demo'))
-                                    if (subCfg.fields.github.enabled) subLabels.push('💻 ' + (subCfg.fields.github.label || 'GitHub'))
-                                    if (subCfg.fields.ppt.enabled) subLabels.push('📊 ' + (subCfg.fields.ppt.label || 'PPT'))
+                                    if (subCfg.fields.text.enabled) subLabels.push(subCfg.fields.text.label || 'Text')
+                                    if (subCfg.fields.live_demo.enabled) subLabels.push(subCfg.fields.live_demo.label || 'Live Demo')
+                                    if (subCfg.fields.github.enabled) subLabels.push(subCfg.fields.github.label || 'GitHub')
+                                    if (subCfg.fields.ppt.enabled) subLabels.push(subCfg.fields.ppt.label || 'PPT')
 
                                     return (
                                         <div key={round.id} className="p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:bg-slate-50/50 transition-colors">
@@ -163,11 +163,11 @@ export default async function JudgeSubmissionsPage() {
 
                                                 <div className="text-xs text-gray-500 flex flex-wrap items-center gap-4 pt-1">
                                                     {hasSubmission ? (
-                                                        <span className="text-emerald-600 font-bold flex items-center gap-1.5">
+                                                        <span className="text-blue-700 font-bold flex items-center gap-1.5">
                                                             <CheckCircle2 size={15} /> Submitted
                                                         </span>
                                                     ) : (
-                                                        <span className={`${deadlinePassed ? 'text-slate-500' : 'text-amber-600'} font-semibold flex items-center gap-1.5`}>
+                                                        <span className="text-gray-500 font-semibold flex items-center gap-1.5">
                                                             <Clock size={15} /> {deadlinePassed ? 'Deadline Passed (No Submission)' : 'Awaiting Submission'}
                                                         </span>
                                                     )}
@@ -179,7 +179,7 @@ export default async function JudgeSubmissionsPage() {
                                                     )}
 
                                                     {subLabels.length > 0 && (
-                                                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md">
+                                                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-md">
                                                             <span>Formats: {subLabels.join(' • ')}</span>
                                                         </div>
                                                     )}
@@ -190,16 +190,16 @@ export default async function JudgeSubmissionsPage() {
                                                 {hasSubmission ? (
                                                     <Link
                                                         href={`/dashboard/judge/submissions/${team.id}/${round.id}`}
-                                                        className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-xs flex items-center gap-2 ${
+                                                        className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer ${
                                                             isGraded
-                                                                ? 'bg-slate-100 text-slate-800 hover:bg-slate-200'
-                                                                : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md'
+                                                                ? 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                                                : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
                                                         }`}
                                                     >
                                                         {isGraded ? 'Edit Evaluation' : 'Evaluate Work'} <ArrowRight size={16} />
                                                     </Link>
                                                 ) : (
-                                                    <button disabled className="px-5 py-2.5 rounded-xl font-bold text-xs bg-gray-100 text-gray-400 cursor-not-allowed">
+                                                    <button disabled className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs bg-gray-100 text-gray-400 cursor-not-allowed">
                                                         No Submission Yet
                                                     </button>
                                                 )}

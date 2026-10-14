@@ -27,7 +27,6 @@ import {
     ShieldAlert,
     Check,
     Copy,
-    Sparkles,
     Layers,
     User,
     PlusCircle
@@ -368,7 +367,7 @@ export default function OrganizerParticipantsPage() {
         const encodedUri = encodeURI(csvContent)
         const link = document.createElement('a')
         link.setAttribute('href', encodedUri)
-        link.setAttribute('download', `hackare_participants_${new Date().toISOString().slice(0, 10)}.csv`)
+        link.setAttribute('download', `gdg_kare_participants_${new Date().toISOString().slice(0, 10)}.csv`)
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)

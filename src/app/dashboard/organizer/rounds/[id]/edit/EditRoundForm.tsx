@@ -11,7 +11,6 @@ import {
     Presentation, 
     Save, 
     SlidersHorizontal,
-    Sparkles,
     Calendar,
     Trophy,
     Trash2,

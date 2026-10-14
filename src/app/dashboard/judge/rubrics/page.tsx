@@ -36,9 +36,9 @@ export default async function JudgeRubricsPage() {
             <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider mb-2 border border-blue-200">
-                        <Trophy size={14} className="text-amber-500" /> Evaluation & Guidelines Guide
+                        <Trophy size={14} className="text-blue-600" /> Evaluation & Guidelines Guide
                     </div>
-                    <h1 className="text-2xl font-black text-gray-900">Rounds Details & Marks Criteria</h1>
+                    <h1 className="text-2xl font-black text-black">Rounds Details & Marks Criteria</h1>
                     <p className="text-xs text-gray-500 mt-1">
                         Detailed round descriptions, required participant deliverables, and quantitative 4-tier rubric benchmarks.
                     </p>
@@ -46,21 +46,21 @@ export default async function JudgeRubricsPage() {
 
                 {/* Benchmark Legend */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-200 text-center">
-                    <div className="bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
-                        <span className="text-[10px] font-black text-emerald-800 uppercase block">Excellent</span>
-                        <span className="text-xs font-black text-emerald-700">10 pts</span>
+                    <div className="bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-xl">
+                        <span className="text-[10px] font-black text-blue-900 uppercase block">Excellent</span>
+                        <span className="text-xs font-black text-blue-800">10 pts</span>
                     </div>
                     <div className="bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl">
                         <span className="text-[10px] font-black text-blue-800 uppercase block">Good</span>
                         <span className="text-xs font-black text-blue-700">7 pts</span>
                     </div>
-                    <div className="bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
-                        <span className="text-[10px] font-black text-amber-800 uppercase block">Fair</span>
-                        <span className="text-xs font-black text-amber-700">4 pts</span>
+                    <div className="bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-xl">
+                        <span className="text-[10px] font-black text-gray-800 uppercase block">Fair</span>
+                        <span className="text-xs font-black text-gray-700">4 pts</span>
                     </div>
-                    <div className="bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl">
-                        <span className="text-[10px] font-black text-rose-800 uppercase block">Needs Impr.</span>
-                        <span className="text-xs font-black text-rose-700">2 pts</span>
+                    <div className="bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-xl">
+                        <span className="text-[10px] font-black text-gray-800 uppercase block">Needs Impr.</span>
+                        <span className="text-xs font-black text-gray-700">2 pts</span>
                     </div>
                 </div>
             </div>
@@ -268,20 +268,20 @@ export default async function JudgeRubricsPage() {
                                                     {/* 4 Benchmark Cards */}
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
                                                         {/* Excellent 10 */}
-                                                        <div className="p-3 bg-emerald-50/80 rounded-xl border border-emerald-200 text-xs flex flex-col justify-between">
+                                                        <div className="p-3 bg-blue-100/70 rounded-xl border border-blue-200 text-xs flex flex-col justify-between">
                                                             <div className="flex items-center justify-between mb-1.5">
-                                                                <span className="font-black text-[10px] text-emerald-800 uppercase">🟢 Excellent</span>
-                                                                <span className="font-black text-emerald-700 font-mono">10 pts</span>
+                                                                <span className="font-black text-[10px] text-blue-900 uppercase">Excellent</span>
+                                                                <span className="font-black text-blue-700 font-mono">10 pts</span>
                                                             </div>
-                                                            <p className="text-[11px] text-emerald-950 leading-relaxed font-medium">
+                                                            <p className="text-[11px] text-blue-950 leading-relaxed font-medium">
                                                                 {criterion.tiers['Excellent'] || 'Completes ≥90% of requirements with exceptional depth and quality.'}
-                                                            </p>
+                             </p>
                                                         </div>
 
                                                         {/* Good 7 */}
                                                         <div className="p-3 bg-blue-50/80 rounded-xl border border-blue-200 text-xs flex flex-col justify-between">
                                                             <div className="flex items-center justify-between mb-1.5">
-                                                                <span className="font-black text-[10px] text-blue-800 uppercase">🔵 Good</span>
+                                                                <span className="font-black text-[10px] text-blue-800 uppercase">Good</span>
                                                                 <span className="font-black text-blue-700 font-mono">7 pts</span>
                                                             </div>
                                                             <p className="text-[11px] text-blue-950 leading-relaxed font-medium">
@@ -290,23 +290,23 @@ export default async function JudgeRubricsPage() {
                                                         </div>
 
                                                         {/* Fair 4 */}
-                                                        <div className="p-3 bg-amber-50/80 rounded-xl border border-amber-200 text-xs flex flex-col justify-between">
+                                                        <div className="p-3 bg-gray-100 rounded-xl border border-gray-200 text-xs flex flex-col justify-between">
                                                             <div className="flex items-center justify-between mb-1.5">
-                                                                <span className="font-black text-[10px] text-amber-800 uppercase">🟡 Fair</span>
-                                                                <span className="font-black text-amber-700 font-mono">4 pts</span>
+                                                                <span className="font-black text-[10px] text-gray-800 uppercase">Fair</span>
+                                                                <span className="font-black text-gray-700 font-mono">4 pts</span>
                                                             </div>
-                                                            <p className="text-[11px] text-amber-950 leading-relaxed font-medium">
+                                                            <p className="text-[11px] text-gray-900 leading-relaxed font-medium">
                                                                 {criterion.tiers['Fair'] || 'Completes 40–69% of requirements with partial implementation.'}
                                                             </p>
                                                         </div>
 
                                                         {/* Needs Improvement 2 */}
-                                                        <div className="p-3 bg-rose-50/80 rounded-xl border border-rose-200 text-xs flex flex-col justify-between">
+                                                        <div className="p-3 bg-gray-100 rounded-xl border border-gray-200 text-xs flex flex-col justify-between">
                                                             <div className="flex items-center justify-between mb-1.5">
-                                                                <span className="font-black text-[10px] text-rose-800 uppercase">🔴 Needs Impr.</span>
-                                                                <span className="font-black text-rose-700 font-mono">2 pts</span>
+                                                                <span className="font-black text-[10px] text-gray-800 uppercase">Needs Impr.</span>
+                                                                <span className="font-black text-gray-700 font-mono">2 pts</span>
                                                             </div>
-                                                            <p className="text-[11px] text-rose-950 leading-relaxed font-medium">
+                                                            <p className="text-[11px] text-gray-900 leading-relaxed font-medium">
                                                                 {criterion.tiers['Needs Improvement'] || 'Completes <40% of requirements or lacks meaningful justification.'}
                                                             </p>
                                                         </div>

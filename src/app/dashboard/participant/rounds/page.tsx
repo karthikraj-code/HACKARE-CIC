@@ -56,11 +56,11 @@ export default async function ParticipantRoundsPage() {
     const submittedRoundIds = new Set(submissions.map(s => s.round_id))
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto pb-12">
+        <div className="space-y-6 w-full max-w-7xl mx-auto pb-12">
             <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 to-sky-400" />
-                <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Hackathon Rounds</h2>
-                <p className="text-gray-600 text-sm">
+                <div className="absolute top-0 left-0 w-full h-1 bg-blue-600" />
+                <h2 className="text-3xl font-extrabold text-black mb-2">Hackathon Rounds</h2>
+                <p className="text-gray-700 text-sm">
                     {!teamId
                         ? "You must join or form a team before you can submit to rounds."
                         : "Complete the competition rounds before their deadlines. Only the Team Leader can submit work."}
@@ -69,12 +69,12 @@ export default async function ParticipantRoundsPage() {
 
             {/* Problem Statement Notice Banner */}
             {teamId && !selectedProblem && (
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-start justify-between gap-4">
+                <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
-                        <Lightbulb className="text-amber-600 shrink-0 mt-0.5" size={24} />
+                        <Lightbulb className="text-blue-600 shrink-0 mt-0.5" size={24} />
                         <div>
-                            <h3 className="font-bold text-amber-900 text-base">Step 1: Choose Problem Statement</h3>
-                            <p className="text-xs text-amber-800 mt-1">
+                            <h3 className="font-bold text-black text-base">Step 1: Choose Problem Statement</h3>
+                            <p className="text-xs text-gray-700 mt-1">
                                 Your team has not locked in a problem statement yet. Please choose a problem statement to tailor your competition submissions.
                             </p>
                         </div>
@@ -82,7 +82,7 @@ export default async function ParticipantRoundsPage() {
 
                     <Link
                         href="/dashboard/participant/problem-statement"
-                        className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-sm whitespace-nowrap transition-colors"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-sm whitespace-nowrap transition-colors"
                     >
                         Select Statement &rarr;
                     </Link>
@@ -91,19 +91,19 @@ export default async function ParticipantRoundsPage() {
 
             {/* Locked Problem statement banner */}
             {selectedProblem && (
-                <div className="bg-emerald-50/60 border border-emerald-200 rounded-xl p-4 flex items-center justify-between">
+                <div className="bg-blue-50/50 border border-blue-200 rounded-xl p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <span className="font-mono text-xs font-black px-2.5 py-1 rounded bg-emerald-100 text-emerald-800">
+                        <span className="font-mono text-xs font-black px-2.5 py-1 rounded bg-blue-100 text-blue-800">
                             {selectedProblem.statement_code}
                         </span>
                         <div>
-                            <span className="text-xs font-bold text-emerald-700 block">{selectedProblem.domain}</span>
-                            <span className="text-sm font-bold text-gray-900">{selectedProblem.title}</span>
+                            <span className="text-xs font-bold text-blue-700 block">{selectedProblem.domain}</span>
+                            <span className="text-sm font-bold text-black">{selectedProblem.title}</span>
                         </div>
                     </div>
                     <Link
                         href="/dashboard/participant/problem-statement"
-                        className="text-xs font-bold text-emerald-700 hover:underline"
+                        className="text-xs font-bold text-blue-600 hover:underline"
                     >
                         View Full Brief &rarr;
                     </Link>
@@ -130,7 +130,7 @@ export default async function ParticipantRoundsPage() {
                     }
 
                     if (isSubmitted) {
-                        statusColor = "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        statusColor = "bg-blue-50 text-blue-700 border-blue-200"
                         statusText = "SUBMITTED"
                     }
 
@@ -138,21 +138,21 @@ export default async function ParticipantRoundsPage() {
                         <div key={round.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col md:flex-row hover:border-blue-200 transition-all">
                             <div className="p-8 flex-1">
                                 <div className="flex justify-between items-start mb-2 gap-4">
-                                    <h3 className="font-extrabold text-gray-900 text-xl leading-tight">
+                                    <h3 className="font-extrabold text-black text-xl leading-tight">
                                         {round.round_number && <span className="text-blue-600 mr-2">Round {round.round_number}:</span>}
                                         {round.name}
                                     </h3>
-                                    <span className={`text-xs font-black px-3 py-1 rounded-full border shrink-0 ${statusColor}`}>
+                                    <span className={`text-xs font-bold px-3 py-1 rounded-full border shrink-0 ${statusColor}`}>
                                         {statusText}
                                     </span>
                                 </div>
 
-                                <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+                                <p className="text-gray-700 text-sm mb-6 leading-relaxed">
                                     {round.description || 'No description provided.'}
                                 </p>
 
                                 <div className="flex flex-wrap gap-3 text-xs">
-                                    <div className="flex items-center text-gray-600 gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 font-medium">
+                                    <div className="flex items-center text-gray-700 gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 font-medium">
                                         <Clock size={15} className="text-gray-400" />
                                         <span suppressHydrationWarning>Deadline: {formatDateTime(endTime)}</span>
                                     </div>
@@ -164,7 +164,7 @@ export default async function ParticipantRoundsPage() {
                                         if (cfg.fields.live_demo.enabled) labels.push('Live Demo')
                                         if (cfg.fields.text.enabled) labels.push('Text')
                                         return (
-                                            <div className="flex items-center text-slate-700 gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 font-semibold">
+                                            <div className="flex items-center text-black gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 font-semibold">
                                                 <FileText size={14} className="text-gray-400" />
                                                 <span>Format: {labels.join(', ') || 'Text'}</span>
                                             </div>
@@ -173,11 +173,11 @@ export default async function ParticipantRoundsPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-slate-50 border-t md:border-t-0 md:border-l border-slate-100 p-8 flex flex-col justify-center items-center md:min-w-[220px] shrink-0">
+                            <div className="bg-gray-50 border-t md:border-t-0 md:border-l border-gray-100 p-8 flex flex-col justify-center items-center md:min-w-[220px] shrink-0">
                                 {isSubmitted ? (
-                                    <div className="text-center text-emerald-600">
-                                        <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-emerald-600" />
-                                        <p className="font-bold text-sm">Submission Received</p>
+                                    <div className="text-center text-blue-600">
+                                        <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-blue-600" />
+                                        <p className="font-bold text-sm text-black">Submission Received</p>
                                         <Link
                                             href={`/dashboard/participant/rounds/${round.id}`}
                                             className="text-xs font-bold text-blue-600 hover:underline mt-2 inline-block bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-xs"

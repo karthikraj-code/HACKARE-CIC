@@ -12,7 +12,6 @@ import {
     Video, 
     Github, 
     Presentation, 
-    Sparkles, 
     HelpCircle,
     SlidersHorizontal,
     Trophy,
@@ -404,23 +403,22 @@ export default function CreateRoundPage() {
             </Link>
 
             <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600" />
+                <div className="absolute top-0 left-0 w-full h-1 bg-blue-600" />
                 
                 <div className="flex items-center gap-3 mb-6">
                     <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
                         <PlusCircle size={24} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black text-gray-900">Create Competition Round</h1>
-                        <p className="text-xs text-gray-500">Configure round details, customizable participant submissions, and quantitative evaluation rubric</p>
+                        <h1 className="text-2xl font-black text-black">Create Competition Round</h1>
+                        <p className="text-xs text-gray-600">Configure round details, customizable participant submissions, and quantitative evaluation rubric</p>
                     </div>
                 </div>
 
                 {/* Quick Presets Carousel / Badges */}
-                <div className="mb-8 p-5 bg-gradient-to-br from-slate-50 to-blue-50/40 rounded-2xl border border-blue-100">
+                <div className="mb-8 p-5 bg-gray-50 rounded-2xl border border-gray-200">
                     <div className="flex items-center gap-2 mb-3">
-                        <Sparkles size={16} className="text-blue-600" />
-                        <span className="text-xs font-black uppercase tracking-wider text-blue-950">
+                        <span className="text-xs font-black uppercase tracking-wider text-black">
                             Quick Templates (Rounds 1–6)
                         </span>
                     </div>

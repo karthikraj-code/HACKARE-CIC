@@ -10,7 +10,6 @@ import {
     CheckCircle2, 
     AlertCircle, 
     Lock,
-    Sparkles,
     Plus,
     Edit3,
     Trash2,
@@ -329,12 +328,12 @@ export default function OrganizerProblemStatementsPage() {
             
             {/* Header Banner */}
             <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-amber-500 to-blue-600" />
+                <div className="absolute top-0 left-0 w-full h-1 bg-blue-600" />
                 <div>
-                    <h2 className="text-3xl font-black text-gray-900 mb-1 flex items-center gap-2">
-                        <Lightbulb className="text-amber-500" /> Manage Problem Statements
+                    <h2 className="text-3xl font-black text-black mb-1 flex items-center gap-2">
+                        <Lightbulb className="text-blue-600" /> Manage Problem Statements
                     </h2>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-gray-700 text-sm">
                         Add, edit, manage team capacity limits, and release problem statements to participants.
                     </p>
                 </div>
@@ -397,8 +396,8 @@ export default function OrganizerProblemStatementsPage() {
                         disabled={togglingRelease}
                         className={`px-6 py-3 rounded-xl font-bold text-xs transition-all shadow-md flex items-center gap-2 shrink-0 cursor-pointer disabled:opacity-50 ${
                             isReleased
-                                ? 'bg-slate-900 hover:bg-slate-800 text-white'
-                                : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                ? 'bg-black hover:bg-gray-800 text-white'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white'
                         }`}
                     >
                         {togglingRelease ? (
@@ -406,7 +405,7 @@ export default function OrganizerProblemStatementsPage() {
                         ) : isReleased ? (
                             <Lock size={14} />
                         ) : (
-                            <Sparkles size={14} />
+                            <Lightbulb size={14} />
                         )}
                         {togglingRelease 
                             ? 'Updating Status...' 
@@ -419,12 +418,12 @@ export default function OrganizerProblemStatementsPage() {
 
             {/* Notification Messages */}
             {message && (
-                <div className="p-4 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 flex items-center justify-between gap-2 text-sm font-semibold">
+                <div className="p-4 bg-blue-50 text-blue-700 rounded-xl border border-blue-200 flex items-center justify-between gap-2 text-sm font-semibold">
                     <div className="flex items-center gap-2">
-                        <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+                        <CheckCircle2 size={18} className="text-blue-600 shrink-0" />
                         <span>{message}</span>
                     </div>
-                    <button onClick={() => setMessage('')} className="text-emerald-700 hover:text-emerald-900">
+                    <button onClick={() => setMessage('')} className="text-blue-700 hover:text-blue-900">
                         <X size={16} />
                     </button>
                 </div>
@@ -445,7 +444,7 @@ export default function OrganizerProblemStatementsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                        <Sparkles size={24} />
+                        <Lightbulb size={24} />
                     </div>
                     <div>
                         <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Statements</p>

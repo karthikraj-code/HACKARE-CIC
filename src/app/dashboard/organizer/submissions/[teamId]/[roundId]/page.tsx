@@ -71,17 +71,17 @@ export default async function OrganizerSubmissionDetail({
 
             {/* Problem Statement Card */}
             {selectedProblem && (
-                <div className="bg-emerald-50/80 border border-emerald-200 p-6 rounded-2xl shadow-xs">
+                <div className="bg-blue-50/80 border border-blue-200 p-6 rounded-2xl shadow-xs">
                     <div className="flex justify-between items-start mb-2">
                         <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-black px-2.5 py-1 rounded bg-emerald-100 text-emerald-800">
+                            <span className="font-mono text-xs font-black px-2.5 py-1 rounded bg-blue-100 text-blue-800">
                                 {selectedProblem.statement_code}
                             </span>
-                            <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">{selectedProblem.domain}</span>
+                            <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">{selectedProblem.domain}</span>
                         </div>
                     </div>
-                    <h3 className="text-lg font-black text-gray-900 mb-1">{selectedProblem.title}</h3>
-                    <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">{selectedProblem.description}</p>
+                    <h3 className="text-lg font-black text-black mb-1">{selectedProblem.title}</h3>
+                    <p className="text-xs text-gray-700 line-clamp-2 leading-relaxed">{selectedProblem.description}</p>
                 </div>
             )}
 
@@ -117,13 +117,13 @@ export default async function OrganizerSubmissionDetail({
                                     <>
                                         {/* 1. Presentation Slides Link */}
                                         {submission.link && (
-                                            <div className="bg-purple-50/60 border border-purple-100 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                            <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                    <div className="w-10 h-10 rounded-lg bg-purple-600 text-white flex items-center justify-center shrink-0">
+                                                    <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
                                                         <FileText size={20} />
                                                     </div>
                                                     <div className="min-w-0 flex-1">
-                                                        <p className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">
+                                                        <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
                                                             {fields.ppt.label || 'Presentation / Slides Link'}
                                                         </p>
                                                         <p className="text-sm font-black text-gray-900 truncate">{submission.link}</p>
@@ -133,7 +133,7 @@ export default async function OrganizerSubmissionDetail({
                                                     href={submission.link.startsWith('http') ? submission.link : `https://${submission.link}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="px-5 py-2.5 bg-purple-600 text-white rounded-lg text-xs font-bold hover:bg-purple-700 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap"
+                                                    className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
                                                 >
                                                     Open Link <ExternalLink size={14} />
                                                 </a>
@@ -167,13 +167,13 @@ export default async function OrganizerSubmissionDetail({
 
                                         {/* 3. Live Demo / Deployed Link / Video URL */}
                                         {submission.file_url && (
-                                            <div className="bg-emerald-50/60 border border-emerald-200 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                            <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                    <div className="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                                                    <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
                                                         <Video size={20} />
                                                     </div>
                                                     <div className="min-w-0 flex-1">
-                                                        <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                                                        <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">
                                                             {fields.live_demo.label || 'Live App / Demo Video Link'}
                                                         </p>
                                                         <p className="text-sm font-black text-gray-900 truncate">{submission.file_url}</p>
@@ -183,7 +183,7 @@ export default async function OrganizerSubmissionDetail({
                                                     href={submission.file_url.startsWith('http') ? submission.file_url : `https://${submission.file_url}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="px-5 py-2.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap"
+                                                    className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
                                                 >
                                                     Open Link <ExternalLink size={14} />
                                                 </a>
@@ -238,7 +238,7 @@ export default async function OrganizerSubmissionDetail({
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-6 rounded-2xl text-white shadow-md">
+                                <div className="bg-blue-600 p-6 rounded-2xl text-white shadow-sm">
                                     <span className="text-[10px] font-black uppercase tracking-widest text-blue-100 opacity-80 block mb-1">
                                         Total Marks Awarded
                                     </span>
@@ -256,19 +256,19 @@ export default async function OrganizerSubmissionDetail({
                                             const ptsNum = Number(pts)
                                             
                                             let tierLabel = 'Custom Score'
-                                            let tierColor = 'bg-blue-100 text-blue-800'
+                                            let tierColor = 'bg-blue-50 text-blue-700 border-blue-200'
                                             if (ptsNum === 10) {
-                                                tierLabel = '🟢 Excellent (10 pts)'
-                                                tierColor = 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                                                tierLabel = 'Excellent (10 pts)'
+                                                tierColor = 'bg-blue-50 text-blue-700 border-blue-200'
                                             } else if (ptsNum === 7) {
-                                                tierLabel = '🔵 Good (7 pts)'
-                                                tierColor = 'bg-blue-100 text-blue-800 border-blue-200'
+                                                tierLabel = 'Good (7 pts)'
+                                                tierColor = 'bg-blue-50 text-blue-700 border-blue-200'
                                             } else if (ptsNum === 4) {
-                                                tierLabel = '🟡 Fair (4 pts)'
-                                                tierColor = 'bg-amber-100 text-amber-800 border-amber-200'
+                                                tierLabel = 'Fair (4 pts)'
+                                                tierColor = 'bg-gray-100 text-gray-700 border-gray-300'
                                             } else if (ptsNum === 2) {
-                                                tierLabel = '🔴 Needs Improvement (2 pts)'
-                                                tierColor = 'bg-rose-100 text-rose-800 border-rose-200'
+                                                tierLabel = 'Needs Improvement (2 pts)'
+                                                tierColor = 'bg-gray-100 text-gray-700 border-gray-300'
                                             }
 
                                             return (

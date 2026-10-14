@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/utils/supabase/server'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Trophy, ArrowLeft, Lock } from 'lucide-react'
 import DashboardRealtimeListener from '@/components/DashboardRealtimeListener'
 
@@ -19,18 +20,56 @@ export default async function PublicLeaderboardPage() {
 
     if (!isReleased) {
         return (
-            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8 text-center">
-                <DashboardRealtimeListener />
-                <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
-                    <Lock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Results Hidden</h1>
-                    <p className="text-gray-600 mb-8 text-sm">
-                        The organizer has not yet released the official leaderboard for HACKARE. Please check back later!
-                    </p>
-                    <Link href="/" className="text-blue-600 font-bold hover:underline flex items-center justify-center gap-2 text-sm">
-                        <ArrowLeft className="w-4 h-4" /> Return to Home
-                    </Link>
-                </div>
+            <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+                {/* Header */}
+                <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-3.5 sticky top-0 z-30">
+                    <div className="max-w-7xl mx-auto flex items-center justify-between">
+                        <Link href="/" className="flex items-center gap-3">
+                            <Image
+                                src="/group-2b.png"
+                                alt="Google Developer Groups On Campus Kalasalingam Academy Of Research & Education"
+                                width={240}
+                                height={40}
+                                className="h-8 md:h-9 w-auto object-contain"
+                                priority
+                            />
+                        </Link>
+                        <Link href="/" className="text-xs font-semibold text-gray-600 hover:text-blue-600 flex items-center gap-1.5 transition-colors">
+                            <ArrowLeft size={14} /> Back to Home
+                        </Link>
+                    </div>
+                </header>
+
+                <main className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                    <DashboardRealtimeListener />
+                    <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-sm border border-gray-200">
+                        <Lock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Results Hidden</h1>
+                        <p className="text-gray-600 mb-8 text-sm">
+                            The organizer has not yet released the official leaderboard for GDG-KARE Event Management Platform. Please check back later!
+                        </p>
+                        <Link href="/" className="text-blue-600 font-bold hover:underline flex items-center justify-center gap-2 text-sm">
+                            <ArrowLeft className="w-4 h-4" /> Return to Home
+                        </Link>
+                    </div>
+                </main>
+
+                {/* Footer */}
+                <footer className="border-t border-gray-200 bg-white py-5 px-4 text-center text-xs text-gray-500">
+                    <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                            <Image
+                                src="/gdg-logo.png"
+                                alt="GDG Logo"
+                                width={16}
+                                height={16}
+                                className="h-3.5 w-auto object-contain"
+                            />
+                            <p>© {new Date().getFullYear()} GDG-KARE Event Management Platform. All rights reserved.</p>
+                        </div>
+                        <p className="text-[11px] text-gray-400">Official Competition Leaderboard</p>
+                    </div>
+                </footer>
             </div>
         )
     }
@@ -67,69 +106,110 @@ export default async function PublicLeaderboardPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background py-16 px-4">
+        <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
             <DashboardRealtimeListener />
-            <div className="max-w-4xl mx-auto space-y-8">
 
-                <div className="mb-4">
-                    <Link href="/" className="inline-flex items-center text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors">
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back to Home
+            {/* Header */}
+            <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-3.5 sticky top-0 z-30 shadow-xs">
+                <div className="max-w-7xl mx-auto flex items-center justify-between">
+                    <Link href="/" className="flex items-center gap-3">
+                        <Image
+                            src="/group-2b.png"
+                            alt="Google Developer Groups On Campus Kalasalingam Academy Of Research & Education"
+                            width={240}
+                            height={40}
+                            className="h-8 md:h-9 w-auto object-contain"
+                            priority
+                        />
+                    </Link>
+                    <Link href="/" className="text-xs font-semibold text-gray-600 hover:text-blue-600 flex items-center gap-1.5 transition-colors">
+                        <ArrowLeft size={14} /> Back to Home
                     </Link>
                 </div>
+            </header>
 
-                <div className="text-center space-y-3 mb-12">
-                    <Trophy className="w-16 h-16 text-amber-500 mx-auto" />
-                    <h1 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight">Official Leaderboard</h1>
-                    <p className="text-lg text-gray-600">HACKARE Final Standings</p>
-                </div>
+            {/* Main Content */}
+            <main className="flex-1 py-12 px-4">
+                <div className="max-w-5xl mx-auto space-y-8">
+                    <div className="text-center space-y-3 mb-10">
+                        <Image
+                            src="/gdg-logo.png"
+                            alt="GDG Logo"
+                            width={54}
+                            height={54}
+                            className="mx-auto h-12 w-auto object-contain mb-2"
+                        />
+                        <h1 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tight">
+                            Official Leaderboard
+                        </h1>
+                        <p className="text-sm md:text-base text-gray-600 font-medium">
+                            GDG-KARE Event Management Platform Final Standings
+                        </p>
+                    </div>
 
-
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
-                                <th className="px-6 py-4 font-semibold border-b border-gray-200 w-20">Rank</th>
-                                <th className="px-6 py-4 font-semibold border-b border-gray-200">Team Name</th>
-                                <th className="px-6 py-4 font-semibold border-b border-gray-200 text-right">Rounds Graded</th>
-                                <th className="px-6 py-4 font-semibold border-b border-gray-200 text-right">Total Score</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {leaderboard.map((team, idx) => (
-                                <tr key={team.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-5 whitespace-nowrap">
-                                        <div className={`flex items-center justify-center w-10 h-10 rounded-full font-extrabold text-base ${
-                                            idx === 0 ? 'bg-amber-100 text-amber-800 ring-2 ring-amber-300' :
-                                            idx === 1 ? 'bg-slate-200 text-slate-700 ring-2 ring-slate-300' :
-                                            idx === 2 ? 'bg-amber-800/10 text-amber-900 ring-2 ring-amber-800/20' :
-                                            'bg-gray-100 text-gray-500'
-                                        }`}>
-                                            {idx + 1}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-5 font-black text-gray-900 text-lg">
-                                        {team.team_name}
-                                    </td>
-                                    <td className="px-6 py-5 whitespace-nowrap text-right text-gray-500 font-semibold text-sm">
-                                        {team.roundsGraded} / 2
-                                    </td>
-                                    <td className="px-6 py-5 whitespace-nowrap text-right font-black text-gray-900 text-2xl">
-                                        {team.totalScore}
-                                    </td>
+                    <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
+                                    <th className="px-6 py-4 font-semibold border-b border-gray-200 w-20">Rank</th>
+                                    <th className="px-6 py-4 font-semibold border-b border-gray-200">Team Name</th>
+                                    <th className="px-6 py-4 font-semibold border-b border-gray-200 text-right">Rounds Graded</th>
+                                    <th className="px-6 py-4 font-semibold border-b border-gray-200 text-right">Total Score</th>
                                 </tr>
-                            ))}
-                            {leaderboard.length === 0 && (
-                                <tr>
-                                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500 bg-gray-50">
-                                        No scores calculated yet.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {leaderboard.map((team, idx) => (
+                                    <tr key={team.id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-5 whitespace-nowrap">
+                                            <div className={`flex items-center justify-center w-10 h-10 rounded-xl font-extrabold text-base ${
+                                                idx === 0 ? 'bg-blue-600 text-white shadow-sm' :
+                                                idx === 1 ? 'bg-blue-100 text-blue-800' :
+                                                idx === 2 ? 'bg-blue-50 text-blue-700' :
+                                                'bg-gray-100 text-gray-600'
+                                            }`}>
+                                                {idx + 1}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5 font-black text-gray-900 text-base md:text-lg">
+                                            {team.team_name}
+                                        </td>
+                                        <td className="px-6 py-5 whitespace-nowrap text-right text-gray-500 font-semibold text-sm">
+                                            {team.roundsGraded} / 2
+                                        </td>
+                                        <td className="px-6 py-5 whitespace-nowrap text-right font-black text-blue-600 text-xl md:text-2xl">
+                                            {team.totalScore}
+                                        </td>
+                                    </tr>
+                                ))}
+                                {leaderboard.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4} className="px-6 py-12 text-center text-gray-500 bg-gray-50">
+                                            No scores calculated yet.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+            </main>
+
+            {/* Footer */}
+            <footer className="border-t border-gray-200 bg-white py-5 px-4 text-center text-xs text-gray-500">
+                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                        <Image
+                            src="/gdg-logo.png"
+                            alt="GDG Logo"
+                            width={16}
+                            height={16}
+                            className="h-3.5 w-auto object-contain"
+                        />
+                        <p>© {new Date().getFullYear()} GDG-KARE Event Management Platform. All rights reserved.</p>
+                    </div>
+                    <p className="text-[11px] text-gray-400">Google Developer Groups On Campus • KARE</p>
+                </div>
+            </footer>
         </div>
     )
 }

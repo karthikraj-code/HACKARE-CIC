@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Users, Shield, Sparkles, Hash } from 'lucide-react'
+import { ArrowLeft, Users, Shield, Hash } from 'lucide-react'
 
 export default function CreateTeamPage() {
     const [teamName, setTeamName] = useState('')
@@ -59,7 +59,7 @@ export default function CreateTeamPage() {
             </Link>
 
             <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 to-indigo-600" />
+                <div className="absolute top-0 left-0 w-full h-1 bg-blue-600" />
                 
                 <div className="flex items-center gap-3.5 mb-6">
                     <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold shadow-xs">
@@ -67,7 +67,7 @@ export default function CreateTeamPage() {
                     </div>
                     <div>
                         <h2 className="text-2xl font-black text-gray-900">Create a New Team</h2>
-                        <p className="text-xs text-gray-500 font-medium">Form your team to participate in HACKARE</p>
+                        <p className="text-xs text-gray-500 font-medium">Form your team to participate in GDG-KARE Event Management Platform</p>
                     </div>
                 </div>
 
@@ -131,9 +131,8 @@ export default function CreateTeamPage() {
                     <button
                         type="submit"
                         disabled={loading || !teamName.trim() || !teamCode.trim()}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-sm transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-sm transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
                     >
-                        <Sparkles size={16} />
                         {loading ? 'Creating Team...' : 'Create Team'}
                     </button>
                 </form>

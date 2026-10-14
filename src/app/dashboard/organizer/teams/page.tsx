@@ -20,7 +20,6 @@ import {
     GraduationCap, 
     Building2, 
     Hash, 
-    Sparkles, 
     RefreshCw, 
     Layers, 
     Sliders,
@@ -917,12 +916,12 @@ export default function ManageTeamsPage() {
             
             {/* Header Banner with Create Team Action */}
             <div className="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-500" />
+                <div className="absolute top-0 left-0 w-full h-1 bg-blue-600" />
                 <div>
-                    <h2 className="text-3xl font-black text-gray-900 mb-1 flex items-center gap-2.5">
+                    <h2 className="text-3xl font-black text-black mb-1 flex items-center gap-2.5">
                         <Users className="text-blue-600" /> Manage Teams & Students
                     </h2>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-gray-700 text-sm">
                         Create teams, enroll students, allocate problem statements, customize Team IDs, and manage judge evaluations.
                     </p>
                 </div>
@@ -930,7 +929,7 @@ export default function ManageTeamsPage() {
                     {/* PRIMARY CREATE TEAM BUTTON */}
                     <button
                         onClick={handleOpenCreateModal}
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl font-black text-xs transition-all flex items-center gap-2 shadow-md shadow-blue-500/20 active:scale-98 cursor-pointer"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 shadow-sm cursor-pointer"
                     >
                         <PlusCircle size={16} /> Create Team & Add Students
                     </button>
@@ -1024,7 +1023,7 @@ export default function ManageTeamsPage() {
 
             {/* Quick Unassigned Students Banner if available */}
             {unassignedStudents.length > 0 && (
-                <div className="p-4.5 bg-gradient-to-r from-blue-50 via-indigo-50 to-white rounded-2xl border border-blue-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="p-4.5 bg-blue-50/60 rounded-2xl border border-blue-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-xs shrink-0">
                             {unassignedStudents.length}
@@ -1048,7 +1047,7 @@ export default function ManageTeamsPage() {
             )}
 
             {/* Bulk Assignment Panel */}
-            <div className="bg-white p-6 rounded-2xl border border-blue-200 shadow-sm bg-gradient-to-r from-blue-50/50 via-white to-indigo-50/40">
+            <div className="bg-white p-6 rounded-2xl border border-blue-200 shadow-sm">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                     <div>
                         <h3 className="text-base font-black text-blue-900 flex items-center gap-2">
@@ -1492,7 +1491,7 @@ export default function ManageTeamsPage() {
                         {/* Header */}
                         <div className="flex justify-between items-center pb-4 border-b border-gray-100 mb-4 shrink-0">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black shadow-sm">
+                                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black shadow-sm">
                                     <PlusCircle size={20} />
                                 </div>
                                 <div>
@@ -1912,7 +1911,7 @@ export default function ManageTeamsPage() {
                                 <button
                                     type="submit"
                                     disabled={creatingTeam}
-                                    className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                                 >
                                     {creatingTeam ? (
                                         <RefreshCw size={14} className="animate-spin" />

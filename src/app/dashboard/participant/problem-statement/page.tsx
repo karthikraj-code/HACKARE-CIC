@@ -12,7 +12,6 @@ import {
     Users, 
     ArrowRight, 
     X,
-    Sparkles,
     Radio,
     RefreshCw
 } from 'lucide-react'
@@ -224,7 +223,7 @@ export default function ProblemStatementSelectionPage() {
     // Initial Loading Skeleton only shown on initial boot
     if (loading && problems.length === 0) {
         return (
-            <div className="space-y-8 max-w-6xl mx-auto pb-16 animate-pulse">
+            <div className="space-y-8 w-full max-w-7xl mx-auto pb-16 animate-pulse">
                 <div className="bg-white p-8 rounded-2xl border border-gray-200 h-40" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {[1, 2, 3, 4].map(i => (
@@ -240,35 +239,35 @@ export default function ProblemStatementSelectionPage() {
     }
 
     return (
-        <div className="space-y-8 max-w-6xl mx-auto pb-16">
+        <div className="space-y-8 w-full max-w-7xl mx-auto pb-16">
             
             {/* Header Banner */}
             <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-amber-500 to-indigo-600" />
+                <div className="absolute top-0 left-0 w-full h-1 bg-blue-600" />
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div>
                         <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <span className="bg-amber-100 text-amber-800 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full flex items-center gap-1.5">
-                                <Sparkles size={14} /> Step 1 Selection
+                            <span className="bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-blue-200">
+                                Step 1 Selection
                             </span>
-                            <span className="text-xs font-bold text-gray-400">• {problems.length} Problem Statements</span>
+                            <span className="text-xs font-bold text-gray-500">• {problems.length} Problem Statements</span>
 
                             {/* Live Dynamic Sync Indicator */}
                             <div className={`flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-bold transition-all ${
                                 liveSyncPulse 
-                                    ? 'bg-emerald-100 text-emerald-800 ring-2 ring-emerald-400 scale-102' 
-                                    : 'bg-slate-100 text-slate-600'
+                                    ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-300' 
+                                    : 'bg-gray-100 text-black'
                             }`}>
-                                <span className={`w-2 h-2 rounded-full ${liveSyncPulse ? 'bg-emerald-500 animate-ping' : 'bg-emerald-500'}`} />
+                                <span className={`w-2 h-2 rounded-full ${liveSyncPulse ? 'bg-blue-600 animate-ping' : 'bg-blue-600'}`} />
                                 <span className="flex items-center gap-1">
-                                    <Radio size={12} className={liveSyncPulse ? 'text-emerald-600 animate-spin' : 'text-emerald-600'} />
+                                    <Radio size={12} className={liveSyncPulse ? 'text-blue-600 animate-spin' : 'text-blue-600'} />
                                     {liveSyncPulse ? 'Live Updated' : 'Live Sync Active'}
                                 </span>
                             </div>
                         </div>
-                        <h1 className="text-3xl font-extrabold text-gray-900">Problem Statement Selection</h1>
-                        <p className="text-gray-600 text-sm mt-1 max-w-2xl">
-                            Each problem statement can be chosen by a maximum of <strong className="text-gray-900">2 teams</strong> on a first-come, first-served basis. Availability updates dynamically in real-time.
+                        <h1 className="text-3xl font-extrabold text-black">Problem Statement Selection</h1>
+                        <p className="text-gray-700 text-sm mt-1 max-w-2xl">
+                            Each problem statement can be chosen by a maximum of <strong className="text-black">2 teams</strong> on a first-come, first-served basis. Availability updates dynamically in real-time.
                         </p>
                     </div>
 
@@ -312,16 +311,16 @@ export default function ProblemStatementSelectionPage() {
 
             {/* Warning if not in a team */}
             {!userTeam && (
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-start gap-4 shadow-sm">
-                    <AlertCircle className="text-amber-600 shrink-0 mt-0.5" size={24} />
+                <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 flex items-start gap-4 shadow-sm">
+                    <AlertCircle className="text-blue-600 shrink-0 mt-0.5" size={24} />
                     <div className="flex-1">
-                        <h3 className="font-bold text-amber-900 text-base mb-1">You are not in a team yet</h3>
-                        <p className="text-sm text-amber-800 mb-3">
+                        <h3 className="font-bold text-black text-base mb-1">You are not in a team yet</h3>
+                        <p className="text-sm text-gray-700 mb-3">
                             You must create or join a team (max 4 members) before you can select and lock a problem statement.
                         </p>
                         <Link
                             href="/dashboard/participant/team"
-                            className="inline-flex items-center gap-2 bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-700 transition-colors shadow-sm"
+                            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm"
                         >
                             <Users size={16} /> Go to Team Formation
                         </Link>
@@ -331,17 +330,17 @@ export default function ProblemStatementSelectionPage() {
 
             {/* Locked Problem Statement Showcase */}
             {hasLocked && userSelection?.problem_statements && (
-                <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-8 shadow-sm relative overflow-hidden animate-in fade-in">
+                <div className="bg-white border-2 border-blue-600 rounded-2xl p-8 shadow-sm relative overflow-hidden animate-in fade-in">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md">
+                            <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm">
                                 <CheckCircle2 size={28} />
                             </div>
                             <div>
-                                <span className="text-xs font-black uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                                <span className="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
                                     Your Team's Locked Problem Statement
                                 </span>
-                                <h3 className="text-2xl font-black text-emerald-950 mt-1">
+                                <h3 className="text-2xl font-black text-black mt-1">
                                     {userSelection.problem_statements.statement_code}: {userSelection.problem_statements.title}
                                 </h3>
                             </div>
@@ -352,24 +351,24 @@ export default function ProblemStatementSelectionPage() {
                                 label="Copy Statement"
                                 variant="outline"
                             />
-                            <div className="bg-white px-4 py-2 rounded-xl border border-emerald-200 shadow-sm text-center">
+                            <div className="bg-gray-50 px-4 py-2 rounded-xl border border-gray-200 shadow-sm text-center">
                                 <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Domain</span>
-                                <span className="font-bold text-emerald-800 text-sm">{userSelection.problem_statements.domain}</span>
+                                <span className="font-bold text-black text-sm">{userSelection.problem_statements.domain}</span>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white/90 p-5 rounded-xl border border-emerald-200/80 mb-6 shadow-xs">
-                        <p className="text-emerald-950 text-sm whitespace-pre-line leading-relaxed font-medium">
+                    <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 mb-6 shadow-xs">
+                        <p className="text-black text-sm whitespace-pre-line leading-relaxed font-medium">
                             {userSelection.problem_statements.description}
                         </p>
                     </div>
-                    <div className="flex flex-wrap gap-4 items-center justify-between pt-4 border-t border-emerald-200">
-                        <p suppressHydrationWarning className="text-xs font-semibold text-emerald-800">
-                            Locked on {formatDateTime(userSelection.selected_at)}. Proceed to Round 1 to prepare your PPT!
+                    <div className="flex flex-wrap gap-4 items-center justify-between pt-4 border-t border-gray-100">
+                        <p suppressHydrationWarning className="text-xs font-semibold text-black">
+                            Locked on {formatDateTime(userSelection.selected_at)}. Proceed to Round 1 to prepare your deliverables!
                         </p>
                         <Link
                             href="/dashboard/participant/rounds"
-                            className="bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-800 transition-colors shadow-sm flex items-center gap-2"
+                            className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
                         >
                             Go to Round 1 Submission <ArrowRight size={16} />
                         </Link>
@@ -390,20 +389,19 @@ export default function ProblemStatementSelectionPage() {
             {/* If NOT released by organizer and user has not locked a statement */}
             {!isReleased && !hasLocked ? (
                 <div className="bg-white border border-gray-200 rounded-3xl p-12 text-center shadow-sm max-w-3xl mx-auto space-y-6">
-                    <div className="w-20 h-20 bg-amber-50 border border-amber-200 text-amber-600 rounded-3xl mx-auto flex items-center justify-center shadow-sm">
+                    <div className="w-20 h-20 bg-blue-50 border border-blue-200 text-blue-600 rounded-3xl mx-auto flex items-center justify-center shadow-sm">
                         <Lock size={36} />
                     </div>
                     <div className="space-y-2">
-                        <span className="bg-amber-100 text-amber-800 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full inline-block border border-amber-200">
+                        <span className="bg-gray-100 text-black text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block border border-gray-200">
                             Statements Locked
                         </span>
-                        <h2 className="text-3xl font-black text-gray-900">Problem Statements Awaiting Release</h2>
-                        <p className="text-gray-600 text-sm max-w-md mx-auto leading-relaxed">
+                        <h2 className="text-3xl font-bold text-black">Problem Statements Awaiting Release</h2>
+                        <p className="text-gray-700 text-sm max-w-md mx-auto leading-relaxed">
                             The organizers have not released the problem statements yet. Once released, all problem statements will appear here dynamically in real time.
                         </p>
                     </div>
-                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl max-w-md mx-auto text-xs text-gray-600 font-medium flex items-center justify-center gap-2">
-                        <Sparkles size={16} className="text-amber-500 shrink-0" />
+                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl max-w-md mx-auto text-xs text-black font-medium flex items-center justify-center gap-2">
                         <span>Ensure your team (up to 4 members) is formed while you wait!</span>
                     </div>
                     {userTeam ? (

@@ -17,7 +17,6 @@ import {
     Copy, 
     Check, 
     ArrowRight,
-    Sparkles,
     Shield
 } from 'lucide-react'
 
@@ -130,25 +129,25 @@ export default function ParticipantProfilePage() {
     const isProfileComplete = Boolean(formData.reg_no && formData.dept && formData.section && formData.year)
 
     return (
-        <div className="space-y-8 max-w-5xl mx-auto pb-16">
+        <div className="space-y-8 w-full max-w-6xl mx-auto pb-16">
             
             {/* Header Banner */}
             <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500" />
+                <div className="absolute top-0 left-0 w-full h-1 bg-blue-600" />
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
-                        <span className="bg-blue-50 text-blue-700 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full border border-blue-200 inline-flex items-center gap-1.5 mb-2">
-                            <Sparkles size={13} /> Participant Profile
+                        <span className="bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-blue-200 inline-flex items-center gap-1.5 mb-2">
+                            Participant Profile
                         </span>
-                        <h1 className="text-3xl font-black text-gray-900">My Profile & Academic Details</h1>
-                        <p className="text-gray-600 text-sm mt-1">
+                        <h1 className="text-3xl font-extrabold text-black">My Profile & Academic Details</h1>
+                        <p className="text-gray-700 text-sm mt-1">
                             Keep your academic registration details updated and view your assigned team information.
                         </p>
                     </div>
 
                     {!isProfileComplete && (
-                        <div className="bg-amber-50 border border-amber-200 px-4 py-2 rounded-xl text-amber-900 text-xs font-bold flex items-center gap-2 shrink-0">
-                            <AlertCircle size={16} className="text-amber-600 shrink-0" />
+                        <div className="bg-gray-100 border border-gray-200 px-4 py-2 rounded-xl text-black text-xs font-bold flex items-center gap-2 shrink-0">
+                            <AlertCircle size={16} className="text-blue-600 shrink-0" />
                             <span>Action Required: Fill academic details</span>
                         </div>
                     )}
@@ -157,8 +156,8 @@ export default function ParticipantProfilePage() {
 
             {/* Success & Error Notifications */}
             {message && (
-                <div className="p-4 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 flex items-center gap-3 text-sm font-semibold animate-in fade-in">
-                    <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+                <div className="p-4 bg-blue-50 text-blue-700 rounded-xl border border-blue-200 flex items-center gap-3 text-sm font-semibold animate-in fade-in">
+                    <CheckCircle2 size={18} className="text-blue-600 shrink-0" />
                     <span>{message}</span>
                 </div>
             )}
@@ -407,7 +406,7 @@ export default function ParticipantProfilePage() {
                                 <div>
                                     <h4 className="text-base font-bold text-gray-900">Not In A Team Yet</h4>
                                     <p className="text-xs text-gray-500 mt-1 max-w-xs mx-auto">
-                                        Form a team of up to 4 members to compete in HACKARE.
+                                        Form a team of up to 4 members to compete in GDG-KARE Event Management Platform.
                                     </p>
 
                                 </div>

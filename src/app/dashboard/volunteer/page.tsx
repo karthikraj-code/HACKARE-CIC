@@ -25,7 +25,6 @@ import {
     UserCheck, 
     UserX, 
     HelpCircle, 
-    Sparkles,
     FileText,
     HeartHandshake
 } from 'lucide-react'

@@ -21,7 +21,6 @@ import {
     ExternalLink, 
     Trash2, 
     MousePointer, 
-    Sparkles, 
     FileText, 
     FileImage, 
     Archive,
@@ -590,7 +589,7 @@ export default function OrganizerCertificatesPage() {
     // Generate sample QR code data URL for preview
     useEffect(() => {
         const origin = typeof window !== 'undefined' ? window.location.origin : ''
-        const sampleUrl = `${origin}/verify-certificate?id=HC26-PREV-99A1`
+        const sampleUrl = `${origin}/verify-certificate?id=GDG-KARE-PREV-99A1`
         QRCode.toDataURL(sampleUrl, {
             width: layout.qrCode.size || 150,
             margin: 1,
@@ -1229,7 +1228,7 @@ export default function OrganizerCertificatesPage() {
         ctx.fillStyle = accent
         ctx.font = 'bold 28px Inter, sans-serif'
         ctx.textAlign = 'center'
-        ctx.fillText('HACKARE 2026 OFFICIAL HACKATHON', 960, 220)
+        ctx.fillText('GDG-KARE EVENT MANAGEMENT PLATFORM 2026', 960, 220)
 
         // Main Title
         ctx.fillStyle = '#f8fafc'
@@ -1563,10 +1562,10 @@ export default function OrganizerCertificatesPage() {
                     message: `Generating certificate for ${p.name} (${p.reg_no})...`
                 })
 
-                // Generate Unique ID: HC26-XXXX-YYYY
+                // Generate Unique ID: GDG-KARE-XXXX-YYYY
                 const randA = Math.random().toString(36).substring(2, 6).toUpperCase()
                 const randB = Math.random().toString(36).substring(2, 6).toUpperCase()
-                const certCode = `HC26-${randA}-${randB}`
+                const certCode = `GDG-KARE-${randA}-${randB}`
 
                 // Verification URL
                 const origin = typeof window !== 'undefined' ? window.location.origin : ''
@@ -1717,7 +1716,7 @@ export default function OrganizerCertificatesPage() {
         ctx.fillStyle = accent
         ctx.font = 'bold 28px Inter, sans-serif'
         ctx.textAlign = 'center'
-        ctx.fillText('HACKARE 2026 OFFICIAL HACKATHON', 960, 220)
+        ctx.fillText('GDG-KARE EVENT MANAGEMENT PLATFORM 2026', 960, 220)
 
         ctx.fillStyle = '#f8fafc'
         ctx.font = 'bold 56px Inter, sans-serif'
@@ -1808,7 +1807,7 @@ export default function OrganizerCertificatesPage() {
 
                 const randA = Math.random().toString(36).substring(2, 6).toUpperCase()
                 const randB = Math.random().toString(36).substring(2, 6).toUpperCase()
-                const certCode = `HC26-${randA}-${randB}`
+                const certCode = `GDG-KARE-${randA}-${randB}`
 
                 const origin = typeof window !== 'undefined' ? window.location.origin : ''
                 const verifyUrl = `${origin}/verify-certificate?id=${certCode}&name=${encodeURIComponent(p.name)}&reg_no=${encodeURIComponent(p.reg_no)}&dept=${encodeURIComponent(p.dept)}&sec=${encodeURIComponent(p.section)}&year=${encodeURIComponent(p.year)}&cat=${encodeURIComponent(p.category)}&type=${encodeURIComponent(tierId)}`
@@ -1949,7 +1948,7 @@ export default function OrganizerCertificatesPage() {
             }
 
             const content = await zip.generateAsync({ type: 'blob' })
-            triggerFileDownload(content, `HACKARE_Certificates_PNG_${new Date().toISOString().slice(0, 10)}.zip`)
+            triggerFileDownload(content, `GDG_KARE_Certificates_PNG_${new Date().toISOString().slice(0, 10)}.zip`)
             showToast('success', `Exported ${generatedResults.length} PNG certificates in ZIP archive!`)
         } catch (err: any) {
             console.error('PNG ZIP export failed:', err)
@@ -1976,7 +1975,7 @@ export default function OrganizerCertificatesPage() {
 
         const randA = Math.random().toString(36).substring(2, 6).toUpperCase()
         const randB = Math.random().toString(36).substring(2, 6).toUpperCase()
-        const certCode = `HC26-${randA}-${randB}`
+        const certCode = `GDG-KARE-${randA}-${randB}`
 
         const origin = typeof window !== 'undefined' ? window.location.origin : ''
         const verifyUrl = `${origin}/verify-certificate?id=${certCode}&name=${encodeURIComponent(participant.name)}&reg_no=${encodeURIComponent(participant.reg_no)}&dept=${encodeURIComponent(participant.dept)}&sec=${encodeURIComponent(participant.section)}&year=${encodeURIComponent(participant.year)}&cat=${encodeURIComponent(participant.category)}&type=${encodeURIComponent(tierId)}`
@@ -2046,7 +2045,7 @@ export default function OrganizerCertificatesPage() {
 
         const randA = Math.random().toString(36).substring(2, 6).toUpperCase()
         const randB = Math.random().toString(36).substring(2, 6).toUpperCase()
-        const certCode = `HC26-${randA}-${randB}`
+        const certCode = `GDG-KARE-${randA}-${randB}`
 
         const origin = typeof window !== 'undefined' ? window.location.origin : ''
         const verifyUrl = `${origin}/verify-certificate?id=${certCode}&name=${encodeURIComponent(participant.name)}&reg_no=${encodeURIComponent(participant.reg_no)}&dept=${encodeURIComponent(participant.dept)}&sec=${encodeURIComponent(participant.section)}&year=${encodeURIComponent(participant.year)}&cat=${encodeURIComponent(participant.category)}&type=${encodeURIComponent(tierId)}`
@@ -2342,7 +2341,7 @@ export default function OrganizerCertificatesPage() {
                 }))
             })
 
-            triggerFileDownload(zipBlob, `HACKARE_${cleanCatName}_PNG_${new Date().toISOString().slice(0, 10)}.zip`)
+            triggerFileDownload(zipBlob, `GDG_KARE_${cleanCatName}_PNG_${new Date().toISOString().slice(0, 10)}.zip`)
             showToast('success', `Successfully exported ${targets.length} PNG certificates for "${cat.label}"!`)
         } catch (err: any) {
             console.error('Download PNG category failed:', err)
@@ -2507,7 +2506,7 @@ export default function OrganizerCertificatesPage() {
             {activeTab === 'studio' ? (
                 <div className="space-y-8">
                     {/* AWARD TIER & BATCH MODE SELECTOR */}
-                    <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-6 rounded-2xl border border-slate-700 shadow-xl text-white space-y-5">
+                    <div className="bg-black p-6 rounded-2xl border border-gray-800 shadow-xl text-white space-y-5">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div>
                                 <div className="flex items-center gap-2">
@@ -2630,7 +2629,7 @@ export default function OrganizerCertificatesPage() {
                                     id="save-winning-teams-btn"
                                     onClick={saveWinningTeamsToDb}
                                     disabled={savingWinningTeams}
-                                    className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                    className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 cursor-pointer transition-all"
                                     title="Save winning teams configuration permanently to Supabase database"
                                 >
                                     <CheckCircle2 size={16} className={savingWinningTeams ? 'animate-spin' : ''} />
@@ -2803,7 +2802,7 @@ export default function OrganizerCertificatesPage() {
                                     }`}
                                 >
                                     <Database size={14} />
-                                    <span>HACKARE Database</span>
+                                    <span>GDG-KARE Platform Database</span>
                                 </button>
                                 <button
                                     onClick={() => excelInputRef.current?.click()}
@@ -3073,7 +3072,7 @@ export default function OrganizerCertificatesPage() {
                                     type="button"
                                     onClick={syncAllTemplatesToCloud}
                                     disabled={syncingAllTemplates}
-                                    className="px-3.5 py-1.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                                    className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
                                     title="Synchronize all templates and coordinates from browser storage to Supabase Cloud DB for all organizers"
                                 >
                                     <CloudUpload size={14} className={syncingAllTemplates ? 'animate-bounce' : ''} />
@@ -3266,7 +3265,7 @@ export default function OrganizerCertificatesPage() {
                                                     </span>
                                                 )}
                                             </div>
-                                            <span>{layout.certId.prefix}HC26-PREV-99A1</span>
+                                            <span>{layout.certId.prefix}GDG-KARE-PREV-99A1</span>
                                         </div>
 
                                         {/* DRAGGABLE PLACEHOLDER: QR CODE */}
@@ -3620,21 +3619,21 @@ export default function OrganizerCertificatesPage() {
                                         type="button"
                                         onClick={saveLayoutConfig}
                                         disabled={savingTemplate}
-                                        className="w-full sm:flex-1 py-2.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                                        className="w-full sm:flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
                                         title={`Save ${selectedCertType} coordinates and template to Supabase Cloud DB`}
                                     >
                                         <CheckCircle2 size={15} className={savingTemplate ? 'animate-spin' : ''} />
-                                        <span>{savingTemplate ? 'Saving Coordinates...' : `💾 Save ${selectedCertType.split(' ')[0]} to Cloud DB`}</span>
+                                        <span>{savingTemplate ? 'Saving Coordinates...' : `Save ${selectedCertType.split(' ')[0]} to Cloud DB`}</span>
                                     </button>
                                     <button
                                         type="button"
                                         onClick={syncAllTemplatesToCloud}
                                         disabled={syncingAllTemplates}
-                                        className="w-full sm:w-auto py-2.5 px-5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-sky-600/20 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                                        className="w-full sm:w-auto py-2.5 px-5 bg-black hover:bg-gray-900 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
                                         title="Synchronize all templates and coordinates across all tiers to Supabase Cloud DB for all organizers"
                                     >
                                         <CloudUpload size={15} className={syncingAllTemplates ? 'animate-bounce' : ''} />
-                                        <span>{syncingAllTemplates ? 'Syncing...' : '☁️ Push All Tiers to Cloud DB'}</span>
+                                        <span>{syncingAllTemplates ? 'Syncing...' : 'Push All Tiers to Cloud DB'}</span>
                                     </button>
                                 </div>
                             </div>
@@ -3740,12 +3739,12 @@ export default function OrganizerCertificatesPage() {
                         {(() => {
                             const activeCat = downloadCategories.find(c => c.id === selectedDownloadCategoryId) || downloadCategories[0]
                             return (
-                                <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-indigo-950 p-6 rounded-2xl border border-slate-700 shadow-xl text-white space-y-5">
+                                <div className="bg-black p-6 rounded-2xl border border-gray-800 shadow-xl text-white space-y-5">
                                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
                                         <div className="space-y-1.5">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-2xl">{activeCat.icon}</span>
-                                                <span className="text-xs font-bold bg-amber-400/20 text-amber-300 px-2.5 py-0.5 rounded-full border border-amber-400/30">
+                                                <span className="text-xs font-bold bg-blue-600/20 text-blue-300 px-2.5 py-0.5 rounded-full border border-blue-500/30">
                                                     Active Category Selection
                                                 </span>
                                             </div>
@@ -3763,7 +3762,7 @@ export default function OrganizerCertificatesPage() {
                                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                                             {/* PNG Format Indicator */}
                                             <div className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800/90 border border-slate-700/90 text-xs font-semibold text-slate-300">
-                                                <FileImage size={14} className="text-amber-400" />
+                                                <FileImage size={14} className="text-blue-400" />
                                                 <span>PNG Format</span>
                                             </div>
 
@@ -3773,11 +3772,11 @@ export default function OrganizerCertificatesPage() {
                                                 id="preview-category-cert-btn"
                                                 onClick={() => openCategoryPreview(activeCat.id, 0)}
                                                 disabled={generatingPreview}
-                                                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-md"
+                                                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
                                                 title="Preview how certificates will look for this category"
                                             >
-                                                <Eye size={15} className="text-amber-400" />
-                                                <span>{generatingPreview ? 'Rendering...' : '👁️ Preview Certificate'}</span>
+                                                <Eye size={15} className="text-blue-400" />
+                                                <span>{generatingPreview ? 'Rendering...' : 'Preview Certificate'}</span>
                                             </button>
 
                                             {/* DOWNLOAD PNG BUTTON */}
@@ -3786,14 +3785,14 @@ export default function OrganizerCertificatesPage() {
                                                 id="download-category-cert-btn"
                                                 onClick={() => downloadCategoryCertificates(activeCat.id)}
                                                 disabled={downloadingCategory || activeCat.count === 0}
-                                                className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-50 text-slate-950 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-lg shadow-emerald-500/25"
+                                                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
                                                 title={`Download all ${activeCat.count} certificates for ${activeCat.label} as PNGs`}
                                             >
                                                 <Download size={15} className={downloadingCategory ? 'animate-bounce' : ''} />
                                                 <span>
                                                     {downloadingCategory
                                                         ? 'Packaging Download...'
-                                                        : `📥 Download ${activeCat.shortName} PNGs (${activeCat.count})`}
+                                                        : `Download ${activeCat.shortName} PNGs (${activeCat.count})`}
                                                 </span>
                                             </button>
                                         </div>
@@ -4672,10 +4671,10 @@ export default function OrganizerCertificatesPage() {
                                             type="button"
                                             onClick={handleSavePreviewLayout}
                                             disabled={savingPreviewTuner}
-                                            className={`w-full py-2.5 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg ${
+                                            className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm ${
                                                 previewTunerSavedSuccess
-                                                    ? 'bg-emerald-500 text-slate-950 shadow-emerald-500/30 ring-2 ring-emerald-400'
-                                                    : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-amber-500/25'
+                                                    ? 'bg-blue-700 text-white'
+                                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
                                             }`}
                                         >
                                             {savingPreviewTuner ? (
@@ -4686,12 +4685,12 @@ export default function OrganizerCertificatesPage() {
                                             ) : previewTunerSavedSuccess ? (
                                                 <>
                                                     <CheckCircle2 size={16} />
-                                                    <span>✅ Coordinates Saved to Cloud DB!</span>
+                                                    <span>Coordinates Saved to Cloud DB!</span>
                                                 </>
                                             ) : (
                                                 <>
                                                     <Save size={15} />
-                                                    <span>💾 Save Coordinates to Cloud DB</span>
+                                                    <span>Save Coordinates to Cloud DB</span>
                                                 </>
                                             )}
                                         </button>
@@ -4706,7 +4705,7 @@ export default function OrganizerCertificatesPage() {
                         {/* Modal Footer Toolbar */}
                         <div className="p-4 bg-slate-900 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
                             <div className="flex items-center gap-2 text-slate-400 text-[11px]">
-                                <Sparkles size={14} className="text-amber-400 shrink-0" />
+                                <CheckCircle2 size={14} className="text-blue-400 shrink-0" />
                                 <span>Dynamic scannable QR code & tamper-proof verification ID included.</span>
                             </div>
 
@@ -4717,7 +4716,7 @@ export default function OrganizerCertificatesPage() {
                                         type="button"
                                         onClick={handleSavePreviewLayout}
                                         disabled={savingPreviewTuner}
-                                        className="px-3.5 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                                        className="px-3.5 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
                                         title="Save coordinates to Supabase Cloud Database"
                                     >
                                         <Save size={14} />
@@ -4746,7 +4745,7 @@ export default function OrganizerCertificatesPage() {
                                     type="button"
                                     onClick={() => downloadCategoryCertificates(previewModal.category.id)}
                                     disabled={downloadingCategory || previewModal.category.count === 0}
-                                    className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-50 text-slate-950 rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-md shadow-emerald-500/20"
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm"
                                     title={`Download all ${previewModal.category.count} certificates in this category as PNGs`}
                                 >
                                     <Download size={14} className={downloadingCategory ? 'animate-bounce' : ''} />
@@ -4763,18 +4762,18 @@ export default function OrganizerCertificatesPage() {
             {/* Confirmation & Status Pop-up Modal */}
             {popupModal?.isOpen && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
                     onClick={() => setPopupModal(null)}
                 >
                     <div
-                        className="relative w-full max-w-lg bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border border-slate-700/80 rounded-2xl shadow-2xl p-6 sm:p-7 text-white space-y-5 animate-in zoom-in-95 duration-200"
+                        className="relative w-full max-w-lg bg-black border border-gray-800 rounded-2xl shadow-2xl p-6 sm:p-7 text-white space-y-5 animate-in zoom-in-95 duration-200"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Close button */}
                         <button
                             type="button"
                             onClick={() => setPopupModal(null)}
-                            className="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-700 p-1.5 rounded-xl transition-all cursor-pointer"
+                            className="absolute top-4 right-4 text-gray-400 hover:text-white bg-gray-900 hover:bg-gray-800 p-1.5 rounded-xl transition-all cursor-pointer"
                             title="Close modal"
                         >
                             <X size={18} />
@@ -4782,37 +4781,25 @@ export default function OrganizerCertificatesPage() {
 
                         {/* Modal Header */}
                         <div className="flex items-start gap-4">
-                            <div className={`p-3 rounded-2xl shrink-0 shadow-lg ${
-                                popupModal.type === 'error'
-                                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 shadow-rose-500/20'
-                                    : popupModal.category === 'winners'
-                                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-amber-500/20'
-                                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-emerald-500/20'
-                            }`}>
+                            <div className="p-3 rounded-2xl shrink-0 shadow-sm bg-blue-600/20 text-blue-400 border border-blue-500/30">
                                 {popupModal.type === 'error' ? (
                                     <AlertCircle size={28} />
                                 ) : popupModal.category === 'winners' ? (
-                                    <Trophy size={28} className="animate-pulse" />
+                                    <Trophy size={28} />
                                 ) : (
-                                    <Sparkles size={28} className="animate-pulse" />
+                                    <CheckCircle2 size={28} />
                                 )}
                             </div>
                             <div className="space-y-1 pr-6">
                                 <div className="flex items-center gap-2">
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider ${
-                                        popupModal.type === 'error'
-                                            ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-                                            : popupModal.category === 'winners'
-                                                ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                                                : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                                    }`}>
-                                        {popupModal.category === 'winners' ? '🏆 Database Updated' : popupModal.category === 'template' ? '🎨 Template Saved' : 'Notification'}
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider bg-blue-600/20 text-blue-300 border-blue-500/30">
+                                        {popupModal.category === 'winners' ? 'Database Updated' : popupModal.category === 'template' ? 'Template Saved' : 'Notification'}
                                     </span>
                                 </div>
                                 <h3 className="text-lg font-bold text-white leading-snug">
                                     {popupModal.title}
                                 </h3>
-                                <p className="text-xs text-slate-300 leading-relaxed">
+                                <p className="text-xs text-gray-300 leading-relaxed">
                                     {popupModal.message}
                                 </p>
                             </div>
@@ -4820,14 +4807,14 @@ export default function OrganizerCertificatesPage() {
 
                         {/* Details List */}
                         {popupModal.details && popupModal.details.length > 0 && (
-                            <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-2 max-h-56 overflow-y-auto">
-                                <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                            <div className="bg-gray-950 border border-gray-800 rounded-xl p-4 space-y-2 max-h-56 overflow-y-auto">
+                                <div className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
                                     Saved Configuration Details:
                                 </div>
                                 <div className="space-y-1.5">
                                     {popupModal.details.map((detail, idx) => (
-                                        <div key={idx} className="text-xs text-slate-200 flex items-start gap-2">
-                                            <span className="text-emerald-400 mt-0.5">•</span>
+                                        <div key={idx} className="text-xs text-gray-200 flex items-start gap-2">
+                                            <span className="text-blue-400 mt-0.5">•</span>
                                             <span className="leading-relaxed">{detail}</span>
                                         </div>
                                     ))}
@@ -4837,8 +4824,8 @@ export default function OrganizerCertificatesPage() {
 
                         {/* Extra Note */}
                         {popupModal.extraNote && (
-                            <div className="bg-indigo-950/40 border border-indigo-800/40 text-indigo-200 text-xs p-3 rounded-xl flex items-start gap-2.5">
-                                <Sparkles size={14} className="text-indigo-400 shrink-0 mt-0.5" />
+                            <div className="bg-blue-950/40 border border-blue-800/40 text-blue-200 text-xs p-3 rounded-xl flex items-start gap-2.5">
+                                <CheckCircle2 size={14} className="text-blue-400 shrink-0 mt-0.5" />
                                 <span className="leading-relaxed">{popupModal.extraNote}</span>
                             </div>
                         )}
@@ -4849,16 +4836,9 @@ export default function OrganizerCertificatesPage() {
                                 type="button"
                                 id="modal-confirm-btn"
                                 onClick={() => setPopupModal(null)}
-                                className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                                    popupModal.type === 'error'
-                                        ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-600/20'
-                                        : popupModal.category === 'winners'
-                                            ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-amber-500/25'
-                                            : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-emerald-500/25'
-                                }`}
+                                className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
                             >
-                                <Check size={15} />
-                                <span>OK, Got It!</span>
+                                Got it, thanks!
                             </button>
                         </div>
                     </div>
@@ -4867,19 +4847,19 @@ export default function OrganizerCertificatesPage() {
 
             {/* Real-time Non-blocking Download Progress Modal */}
             {downloadProgress.isOpen && (
-                <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-                    <div className="bg-slate-900 border border-slate-700/80 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl text-white space-y-6 animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+                    <div className="bg-black border border-gray-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl text-white space-y-6 animate-in fade-in zoom-in-95 duration-200">
                         {/* Header */}
                         <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-slate-950 shadow-lg shadow-amber-500/30 shrink-0">
+                            <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-sm shrink-0">
                                 <Download size={28} className="animate-bounce" />
                             </div>
                             <div className="space-y-1">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">
+                                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-600/20 text-blue-300 border border-blue-500/30 uppercase tracking-wider">
                                         Fast Packaging
                                     </span>
-                                    <span className="text-xs text-slate-400">
+                                    <span className="text-xs text-gray-400">
                                         {downloadProgress.current} / {downloadProgress.total} Complete
                                     </span>
                                 </div>
@@ -4890,30 +4870,30 @@ export default function OrganizerCertificatesPage() {
                         </div>
 
                         {/* Progress Bar & Percentage */}
-                        <div className="space-y-2.5 bg-slate-950/70 border border-slate-800 rounded-2xl p-4">
+                        <div className="space-y-2.5 bg-gray-950 border border-gray-800 rounded-2xl p-4">
                             <div className="flex items-center justify-between text-xs font-semibold">
-                                <span className="text-slate-300 truncate max-w-[280px]">
+                                <span className="text-gray-300 truncate max-w-[280px]">
                                     {downloadProgress.stage || 'Rendering certificates...'}
                                 </span>
-                                <span className="text-amber-400 font-black text-sm">
+                                <span className="text-blue-400 font-black text-sm">
                                     {downloadProgress.percent}%
                                 </span>
                             </div>
-                            <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700/60">
+                            <div className="w-full h-3 bg-gray-900 rounded-full overflow-hidden p-0.5 border border-gray-800">
                                 <div
-                                    className="h-full bg-gradient-to-r from-amber-500 via-emerald-400 to-teal-400 rounded-full transition-all duration-300 ease-out shadow-sm shadow-emerald-400/50"
+                                    className="h-full bg-blue-600 rounded-full transition-all duration-300 ease-out"
                                     style={{ width: `${Math.max(4, downloadProgress.percent)}%` }}
                                 />
                             </div>
-                            <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
-                                <span>⚡ High-Speed Native PNG Engine</span>
-                                <span className="text-emerald-400 font-medium">60 FPS Responsive</span>
+                            <div className="flex items-center justify-between text-[11px] text-gray-400 pt-1">
+                                <span>High-Speed Native PNG Engine</span>
+                                <span className="text-blue-400 font-medium">Responsive</span>
                             </div>
                         </div>
 
                         {/* Informational tip */}
-                        <div className="bg-emerald-950/30 border border-emerald-800/40 text-emerald-200 text-xs p-3 rounded-xl flex items-start gap-2.5">
-                            <Sparkles size={15} className="text-emerald-400 shrink-0 mt-0.5" />
+                        <div className="bg-blue-950/30 border border-blue-800/40 text-blue-200 text-xs p-3 rounded-xl flex items-start gap-2.5">
+                            <CheckCircle2 size={15} className="text-blue-400 shrink-0 mt-0.5" />
                             <p className="leading-relaxed text-[11px]">
                                 Main-thread yielding is active on each certificate. Your browser stays completely responsive without freezing or lagging.
                             </p>

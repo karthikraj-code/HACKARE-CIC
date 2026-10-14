@@ -2,7 +2,8 @@
 
 import { useState, Suspense } from 'react'
 import Link from 'next/link'
-import { Trophy, AlertCircle } from 'lucide-react'
+import Image from 'next/image'
+import { AlertCircle, ArrowLeft } from 'lucide-react'
 import { signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 
@@ -44,12 +45,12 @@ function LoginForm() {
     }
 
     return (
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-200">
+        <div className="bg-white py-8 px-4 shadow-sm sm:rounded-2xl sm:px-10 border border-gray-200">
             <div className="space-y-6">
                 <button
                     onClick={handleGoogleLogin}
                     disabled={loading}
-                    className="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-70 flex items-center gap-3 relative overflow-hidden"
+                    className="w-full flex justify-center py-3.5 px-4 border border-gray-300 rounded-xl shadow-xs bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-70 flex items-center gap-3 relative overflow-hidden cursor-pointer"
                 >
                     {loading && (
                         <div className="absolute inset-0 bg-blue-50/50 flex items-center justify-center">
@@ -78,7 +79,7 @@ function LoginForm() {
             </div>
 
             {displayedError && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700 flex items-start gap-2">
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-start gap-2">
                     <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                     <span>{displayedError}</span>
                 </div>
@@ -89,26 +90,71 @@ function LoginForm() {
 
 export default function LoginPage() {
     return (
-        <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-                <Trophy className="mx-auto h-12 w-12 text-blue-600" />
-                <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-                    Sign in to HACKARE
-                </h2>
-
-                <p className="mt-2 text-sm text-gray-600">
-                    Or{' '}
-                    <Link href="/" className="font-medium text-blue-600 hover:text-blue-500">
-                        return back home
+        <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+            {/* Header */}
+            <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-3.5">
+                <div className="max-w-7xl mx-auto flex items-center justify-between">
+                    <Link href="/" className="flex items-center gap-3">
+                        <Image
+                            src="/group-2b.png"
+                            alt="Google Developer Groups On Campus Kalasalingam Academy Of Research & Education"
+                            width={240}
+                            height={40}
+                            className="h-8 md:h-9 w-auto object-contain"
+                            priority
+                        />
                     </Link>
-                </p>
-            </div>
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-blue-600 transition-colors"
+                    >
+                        <ArrowLeft size={14} />
+                        Back to Home
+                    </Link>
+                </div>
+            </header>
 
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <Suspense fallback={<div className="text-center p-4">Loading...</div>}>
-                    <LoginForm />
-                </Suspense>
-            </div>
+            {/* Login Card Main */}
+            <main className="flex-1 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+                <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
+                    <Image
+                        src="/gdg-logo.png"
+                        alt="GDG Logo"
+                        width={64}
+                        height={64}
+                        className="mx-auto h-14 w-auto object-contain mb-4"
+                    />
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+                        Sign in to GDG-KARE Event Management Platform
+                    </h2>
+                    <p className="mt-2 text-xs sm:text-sm text-gray-600 max-w-sm mx-auto">
+                        Google Developer Groups On Campus • Kalasalingam Academy Of Research & Education
+                    </p>
+                </div>
+
+                <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
+                    <Suspense fallback={<div className="text-center p-4">Loading...</div>}>
+                        <LoginForm />
+                    </Suspense>
+                </div>
+            </main>
+
+            {/* Footer */}
+            <footer className="border-t border-gray-200 bg-white py-5 px-4 text-center text-xs text-gray-500">
+                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                        <Image
+                            src="/gdg-logo.png"
+                            alt="GDG Logo"
+                            width={16}
+                            height={16}
+                            className="h-3.5 w-auto object-contain"
+                        />
+                        <p>© {new Date().getFullYear()} GDG-KARE Event Management Platform. All rights reserved.</p>
+                    </div>
+                    <p className="text-[11px] text-gray-400">Official Event & Competition Portal</p>
+                </div>
+            </footer>
         </div>
     )
 }
